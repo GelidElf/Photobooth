@@ -12,7 +12,7 @@ screen = fborx.getScreen(backgroundx,backgroundy);
 # this will draw a red rect
 pygame.draw.rect(screen, (255,0,0), Rect(100,100,100,100))
 
-background = pygame.image.load("testImages/maxresdefault.jpg");
+background = pygame.image.load("images/maxresdefault.jpg");
 screen.blit(background,(0,0));
 
 # this will draw some text with custom font and color
