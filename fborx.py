@@ -30,7 +30,7 @@ def getFb():
                     if disp_no:
                             print ("I'm running under X display = {0}".format(disp_no))
 
-                    drivers = ['fbcon', 'directfb', 'svgalib', 'xvfb', 'x11', 'dga', 'ggi', 'vgl', 'svgalib', 'aalib', 'windib', 'directx'] #the last 2 are windows where we should not need the fb since it always has desktop, but lets keep them anyway...
+                    drivers = ['fbturbo', 'fbcon', 'directfb', 'svgalib', 'xvfb', 'x11', 'dga', 'ggi', 'vgl', 'svgalib', 'aalib', 'windib', 'directx'] #the last 2 are windows where we should not need the fb since it always has desktop, but lets keep them anyway...
                     found = False
                     for driver in drivers:
                             # Make sure that SDL_VIDEODRIVER is set
