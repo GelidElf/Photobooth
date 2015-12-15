@@ -13,21 +13,25 @@ size = (backgroundx, backgroundy);
 class GameWindow:
     size = None
     screen = None
+    clock = None
 
-    def __init__(self, size):
-        self.size = size
+    def __init__(self, s):
+        self.size = s
         self.screen = fborx.getScreen(size);
+        self.clock = pygame.time.Clock()
 
 
 class MainMenuScreen:
-    gameWindow = None
+    game_window = None
     border = None
     imageSize = None
+    singleButton = None
+    multiButton = None
 
-    def __init__(self, gameWindow):
-        self.gameWindow = gameWindow
+    def __init__(self, game_window):
+        self.game_window = game_window
         self.border = 30
-        self.imageSize = (int(gameWindow.size[0] / 2 - self.border - self.border / 2), int(gameWindow.size[1] - 2 * self.border))
+        self.imageSize = (int(game_window.size[0] / 2 - self.border - self.border / 2), int(game_window.size[1] - 2 * self.border))
         self.singleImage, self.singleRect = self.load_image('single-photo.png', -1)
         self.multiImage, self.multiRect = self.load_image('multi-photo.png', -1)
 
@@ -44,15 +48,49 @@ class MainMenuScreen:
     def paint(self):
         singlePhotoBounds = (self.border, self.border, self.imageSize[0], self.imageSize[1])
         #pygame.draw.rect(self.gameWindow.screen, (255, 0, 0), singlePhotoBounds)
-        self.gameWindow.screen.blit(pygame.transform.scale(self.singleImage,self.imageSize),(singlePhotoBounds[0],singlePhotoBounds[1]))
+        self.singleButton = self.gameWindow.screen.blit(pygame.transform.scale(self.singleImage,self.imageSize),(singlePhotoBounds[0],singlePhotoBounds[1]))
         multiPhotoBoundsStart = (self.gameWindow.size[0] - self.border - self.imageSize[0], self.border)
         multiPhotoBounds = (multiPhotoBoundsStart[0], multiPhotoBoundsStart[1], self.imageSize[0], self.imageSize[1])
         #pygame.draw.rect(self.gameWindow.screen, (255, 0, 0), multiPhotoBounds)
-        self.gameWindow.screen.blit(pygame.transform.scale(self.multiImage,self.imageSize),(multiPhotoBounds[0],multiPhotoBounds[1]))
+        self.multiButton = self.gameWindow.screen.blit(pygame.transform.scale(self.multiImage,self.imageSize),(multiPhotoBounds[0],multiPhotoBounds[1]))
         pygame.display.flip()
+
+
+class ClockScreen:
+    start = 5
+    gw = None
+
+    def __init__(self,game_window,start = None):
+        self.gw = game_window
+        if start:
+            self.start = start
+
+    def paint (self):
+        counter, text = 5, '5'.center(3)
+        pygame.time.set_timer(pygame.USEREVENT, 1000)
+        font = pygame.font.SysFont('Consolas', 400)
+
+        while True:
+            for e in pygame.event.get():
+                if e.type == pygame.USEREVENT:
+                    counter -= 1
+                    text = str(counter).center(3) if counter > 0 else 'smile!'
+                if e.type == pygame.QUIT: break
+            else:
+                self.gw.screen.fill((255, 255, 255))
+                display_text = font.render(text, True, (0, 0, 0))
+                display_size = display_text.get_size()
+                position = ((self.gw.size[0]-display_size[0])/2 ,(self.gw.size[1]-display_size[1])/2)
+                self.gw.screen.blit(display_text, position)
+                pygame.display.flip()
+                self.gw.clock.tick(60)
+                continue
+            break
+
 
 gw = GameWindow(size)
 mms = MainMenuScreen(gw)
+cs = ClockScreen(gw)
 mms.paint()
 # this code just waits for the ESC key (isn't beauty with the loop, but works for now)
 running = True
@@ -63,8 +101,11 @@ while running:
             if event.key == K_ESCAPE:
                 running = False
         if pygame.mouse.get_pressed()[0] == 1:
-            if play_big.collidepoint(pygame.mouse.get_pos()):
-                print('button pressed')
+            if mms.singleButton.collidepoint(pygame.mouse.get_pos()):
+                print('single button pressed')
+                cs.paint()
+            if mms.multiButton.collidepoint(pygame.mouse.get_pos()):
+                print('multiple button pressed')
 
 # make sure to call pygame.quit() if using the framebuffer to get back to your terminal
 pygame.quit()
