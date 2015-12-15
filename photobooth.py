@@ -1,44 +1,59 @@
-
 import pygame
 from pygame.locals import *
 import fborx
+import os
 
 # this will open a 800x800 window if xserver is running or fullscreen fb if not
 
-backgroundx = 800;
-backgroundy = 800;
-screen = fborx.getScreen(backgroundx,backgroundy);
+backgroundx = 1000;
+backgroundy = 500;
+size = (backgroundx, backgroundy);
 
-# this will draw a red rect
-pygame.draw.rect(screen, (255,0,0), Rect(100,100,100,100))
 
-background = pygame.image.load("images/maxresdefault.jpg");
-screen.blit(background,(0,0));
+class GameWindow:
+    size = None
+    screen = None
 
-# this will draw some text with custom font and color
-# (I hope the font works for you, windows users may have to change to arial)
-'''
-myfont = pygame.font.SysFont("monospace", 50)
-label = myfont.render("The screen size is " + str(fborx.size[0]) +"x" + str(fborx.size[1]), 1, (0,255,0))
-screen.blit(label, (10, 300))
-'''
+    def __init__(self, size):
+        self.size = size
+        self.screen = fborx.getScreen(size);
 
-BLACK = (0,0,0);
-WHITE = (255,255,255);
 
-# play button
-play_big = pygame.draw.rect(screen, BLACK, (backgroundx - 130, backgroundy - 70, 260, 60))
-play_outline = pygame.draw.rect(screen, WHITE, (backgroundx - 130, backgroundy - 70, 255, 55))
-myfont = pygame.font.SysFont("monospace", 50)
-playtext = myfont.render('Play', True, BLACK, None)
-playtext_rect = playtext.get_rect()
-playtext_rect.centerx = backgroundx
-playtext_rect.centery = backgroundy - 50
-screen.blit(playtext, playtext_rect)
+class MainMenuScreen:
+    gameWindow = None
+    border = None
+    imageSize = None
 
-# now update the display to show the new graphics
-pygame.display.flip()
+    def __init__(self, gameWindow):
+        self.gameWindow = gameWindow
+        self.border = 30
+        self.imageSize = (int(gameWindow.size[0] / 2 - self.border - self.border / 2), int(gameWindow.size[1] - 2 * self.border))
+        self.singleImage, self.singleRect = self.load_image('single-photo.png', -1)
+        self.multiImage, self.multiRect = self.load_image('multi-photo.png', -1)
 
+    def load_image(self, name, colorkey=None):
+        fullname = os.path.join('images', name)
+        image = pygame.image.load(fullname)
+        image = image.convert()
+        if colorkey is not None:
+            if colorkey is -1:
+                colorkey = image.get_at((0,0))
+            image.set_colorkey(colorkey, pygame.RLEACCEL)
+        return image, image.get_rect()
+
+    def paint(self):
+        singlePhotoBounds = (self.border, self.border, self.imageSize[0], self.imageSize[1])
+        #pygame.draw.rect(self.gameWindow.screen, (255, 0, 0), singlePhotoBounds)
+        self.gameWindow.screen.blit(pygame.transform.scale(self.singleImage,self.imageSize),(singlePhotoBounds[0],singlePhotoBounds[1]))
+        multiPhotoBoundsStart = (self.gameWindow.size[0] - self.border - self.imageSize[0], self.border)
+        multiPhotoBounds = (multiPhotoBoundsStart[0], multiPhotoBoundsStart[1], self.imageSize[0], self.imageSize[1])
+        #pygame.draw.rect(self.gameWindow.screen, (255, 0, 0), multiPhotoBounds)
+        self.gameWindow.screen.blit(pygame.transform.scale(self.multiImage,self.imageSize),(multiPhotoBounds[0],multiPhotoBounds[1]))
+        pygame.display.flip()
+
+gw = GameWindow(size)
+mms = MainMenuScreen(gw)
+mms.paint()
 # this code just waits for the ESC key (isn't beauty with the loop, but works for now)
 running = True
 while running:

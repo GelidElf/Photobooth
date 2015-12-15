@@ -3,16 +3,17 @@ import pygame
 import time
 import random
  
-class pyscope :
+class GameWindow :
     screen = None;
+    size = None;
     
-    def __init__(self):
+    def __init__(self,windowSize):
         "Ininitializes a new pygame screen using the framebuffer"
         # Based on "Python GUI in Linux frame buffer"
         # http://www.karoltomala.com/blog/?p=679
         disp_no = os.getenv("DISPLAY")
         if disp_no:
-            print "I'm running under X display = {0}".format(disp_no)
+            print ("I'm running under X display = {}".format(disp_no))
         
         # Check which frame buffer drivers are available
         # Start with fbcon since directfb hangs with composite output
@@ -23,19 +24,24 @@ class pyscope :
             if not os.getenv('SDL_VIDEODRIVER'):
                 os.putenv('SDL_VIDEODRIVER', driver)
             try:
+                print("Driver: "+driver)
                 pygame.display.init()
             except pygame.error:
-                print 'Driver: {0} failed.'.format(driver)
+                print ('Driver: {0} failed.'.format(driver))
                 continue
             found = True
+            print("this one works.")
             break
     
         if not found:
             raise Exception('No suitable video driver found!')
         
-        size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-        print "Framebuffer size: %d x %d" % (size[0], size[1])
-        self.screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+        if not windowSize:
+            self.size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+        else:
+            self.size = windowSize
+        print ("Framebuffer size: %d x %d" % (self.size[0], self.size[1]))
+        self.screen = pygame.display.set_mode(self.size, pygame.FULLSCREEN)
         # Clear the screen to start
         self.screen.fill((0, 0, 0))        
         # Initialise font support
@@ -52,8 +58,11 @@ class pyscope :
         self.screen.fill(red)
         # Update the display
         pygame.display.update()
- 
+
+
+
 # Create an instance of the PyScope class
-scope = pyscope()
-scope.test()
+gw = GameWindow()
+mms = MainMenuScreen()
+mms.paint()
 time.sleep(10)
