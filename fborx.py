@@ -6,7 +6,8 @@ size = (0, 0)
 def getScreen(size):
                     pygame.init()
                     display = None
-                    print ("X server size: %d x %d" % (size[0], size[1]))
+                    if size:
+                        print("Original X server size: %d x %d" % (size[0], size[1]))
                     if 'DISPLAY' in os.environ:
                             try:
                                     display = getWindowDisplay()
@@ -19,7 +20,8 @@ def getScreen(size):
                                     display =  getWindowDisplay()
                     if not size:
                             size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-                    return display.set_mode(size)
+                    print('Resizing to %sx%s' % (size))
+                    return display.set_mode(size,pygame.FULLSCREEN),size
 
 def getWindowDisplay():
                     print("Try to open a window")
@@ -44,7 +46,7 @@ def getFbDisplay():
                                     print("Driver: "+driver)
                                     pygame.display.init()
                             except pygame.error:
-                                    print ('Driver: {0} failed.'.format(driver))
+                                    print('Driver: {0} failed.'.format(driver))
                                     continue
                             found = True
                             print("this one works.")

@@ -3,12 +3,19 @@ import os
 import pygame
 
 import fborx
+from optparse import OptionParser
 
 # this will open a 800x800 window if xserver is running or fullscreen fb if not
 
+op = OptionParser()
+op.add_option('-f')
+op.add_option('-x')
+op.add_option('-y')
+
 backgroundx = 1000;
 backgroundy = 500;
-size = (backgroundx, backgroundy);
+# size = (backgroundx, backgroundy);
+size = None
 
 
 class GameWindow:
@@ -17,8 +24,7 @@ class GameWindow:
     clock = None
 
     def __init__(self, s):
-        self.size = s
-        self.screen = fborx.getScreen(size);
+        self.screen,self.size = fborx.getScreen(s);
         self.clock = pygame.time.Clock()
 
 
