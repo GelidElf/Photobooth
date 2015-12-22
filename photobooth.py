@@ -115,7 +115,9 @@ while running:
 
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
-            if event.key == K_ESCAPE:
+            if event.type == QUIT:
+               running = False
+            elif event.key == K_ESCAPE:
                 running = False
         if pygame.mouse.get_pressed()[0] == 1:
             if mms.singleButton.collidepoint(pygame.mouse.get_pos()):
@@ -123,8 +125,9 @@ while running:
                 window = scs
             if mms.multiButton.collidepoint(pygame.mouse.get_pos()):
                 print('multiple button pressed')
-    window.tick()
-    window.paint()
+    if running:
+        window.paint()
+        window.tick()
 
 # make sure to call pygame.quit() if using the framebuffer to get back to your terminal
 pygame.quit()
