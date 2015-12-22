@@ -3,7 +3,7 @@ import os
 size = (0, 0)
 
 #x and y will be the windowsize if an xserver is running
-def getScreen(size):
+def getScreen(size,fullscreen=False):
                     pygame.init()
                     display = None
                     if size:
@@ -21,7 +21,10 @@ def getScreen(size):
                     if not size:
                             size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
                     print('Resizing to %sx%s' % (size))
-                    return display.set_mode(size,pygame.FULLSCREEN),size
+                    if fullscreen:
+                        return display.set_mode(size,pygame.FULLSCREEN),size
+                    else:
+                        return display.set_mode(size),size
 
 def getWindowDisplay():
                     print("Try to open a window")
