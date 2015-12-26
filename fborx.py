@@ -2,34 +2,36 @@ import pygame
 import os
 size = (0, 0)
 
-#x and y will be the windowsize if an xserver is running
-def getScreen(size,fullscreen=False):
+
+def get_screen(size, full_screen=False):
                     pygame.init()
-                    display = None
                     if 'DISPLAY' in os.environ:
                             try:
-                                    display = getWindowDisplay()
+                                    display = get_window_display()
                             except:
-                                    display = getFbDisplay()
+                                    display = get_fb_display()
                     else:
                             try:
-                                    display =  getFbDisplay()
+                                    display = get_fb_display()
                             except:
-                                    display =  getWindowDisplay()
+                                    display = get_window_display()
                     print("Original X server size: %d x %d" % (pygame.display.Info().current_w, pygame.display.Info().current_h))
                     if not size:
                             size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-                    print('Resizing to %sx%s' % (size))
-                    if fullscreen:
+                    print('Resizing to %sx%s' % size)
+                    if full_screen:
                         return display.set_mode(size,pygame.FULLSCREEN),size
                     else:
                         return display.set_mode(size),size
 
-def getWindowDisplay():
+
+def get_window_display():
                     print("Try to open a window")
                     global size
                     return pygame.display
-def getFbDisplay():
+
+
+def get_fb_display():
                     print("Try to open Fb")
                     global size
                     disp_no = os.getenv("DISPLAY")
@@ -54,8 +56,7 @@ def getFbDisplay():
                             print("this one works.")
                             break
 
-
                     if not found:
                             raise Exception('No suitable video driver found!')
 
-                    return(pygame.display)
+                    return pygame.display

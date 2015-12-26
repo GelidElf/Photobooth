@@ -5,7 +5,7 @@ import fborx
 import argparse
 
 parser = argparse.ArgumentParser(description='Photobooth.')
-parser.add_argument('-f', '--fullscreen', action='store_true', default=False)
+parser.add_argument('-f', '--full_screen', action='store_true', default=False)
 parser.add_argument('-x', type=int, default=1000)
 parser.add_argument('-y', type=int, default=500)
 args = parser.parse_args()
@@ -13,14 +13,14 @@ args = parser.parse_args()
 size = (args.x, args.y)
 
 
-def load_image(name, colorkey=None):
+def load_image(name, color_key=None):
     fullname = os.path.join('images', name)
     image = pygame.image.load(fullname)
     image = image.convert()
-    if colorkey is not None:
-        if colorkey is -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey, pygame.RLEACCEL)
+    if color_key is not None:
+        if color_key is -1:
+            color_key = image.get_at((0, 0))
+        image.set_colorkey(color_key, pygame.RLEACCEL)
     return image, image.get_rect()
 
 
@@ -28,13 +28,12 @@ class GameWindow:
     size = None
     screen = None
     clock = None
-    windows = None
+    windows = {}
     current_window = None;
 
     def __init__(self, s, full_screen=False):
-        self.screen, self.size = fborx.getScreen(s, full_screen);
+        self.screen, self.size = fborx.get_screen(s, full_screen);
         self.clock = pygame.time.Clock()
-        self.windows = {}
         self.windows["menu"] = MainMenuScreen(self)
         self.windows["single"] = SingleClockScreen(self)
         self.windows["multiple"] = MultipleClockScreen(self)
@@ -78,9 +77,10 @@ class MainMenuScreen:
         if pygame.mouse.get_pressed()[0] == 1:
             if self.singleButton.collidepoint(pygame.mouse.get_pos()):
                 print('single button pressed')
-                return SingleClockScreen(self.game_window)
+                return self.game_window.window["single"]
             if self.multiButton.collidepoint(pygame.mouse.get_pos()):
                 print('multiple button pressed')
+                return self.game_window.window["multiple"]
         return self
 
 
