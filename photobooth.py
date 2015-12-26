@@ -29,10 +29,10 @@ class GameWindow:
     screen = None
     clock = None
     windows = {}
-    current_window = None;
+    current_window = None
 
     def __init__(self, s, full_screen=False):
-        self.screen, self.size = fborx.get_screen(s, full_screen);
+        self.screen, self.size = fborx.get_screen(s, full_screen)
         self.clock = pygame.time.Clock()
         self.windows["menu"] = MainMenuScreen(self)
         self.windows["single"] = SingleClockScreen(self)
@@ -40,14 +40,14 @@ class GameWindow:
         self.current_window = self.windows["menu"]
 
     def transition(self, event):
-        self.current_window.transition(event)
+        self.current_window = self.windows(self.current_window.transition(event))
         return self.current_window
 
 
 class MainMenuScreen:
     game_window = None
     border = None
-    imageSize = None
+    image_size = None
     singleImage = None
     singleButton = None
     multiButton = None
@@ -55,21 +55,21 @@ class MainMenuScreen:
     def __init__(self, game_window):
         self.game_window = game_window
         self.border = 30
-        self.imageSize = (int(game_window.size[0] / 2 - self.border - self.border / 2), int(game_window.size[1] - 2 * self.border))
+        self.image_size = (int(game_window.size[0] / 2 - self.border - self.border / 2), int(game_window.size[1] - 2 * self.border))
         self.singleImage, self.singleRect = load_image('single-photo.png', -1)
-        self.singleImage = pygame.transform.scale(self.singleImage, self.imageSize)
+        self.singleImage = pygame.transform.scale(self.singleImage, self.image_size)
         self.multiImage, self.multiRect = load_image('multi-photo.png', -1)
-        self.multiImage = pygame.transform.scale(self.multiImage, self.imageSize)
+        self.multiImage = pygame.transform.scale(self.multiImage, self.image_size)
 
     def tick(self):
         # self.game_window.clock.tick(2)
         pass
 
     def paint(self):
-        single_photo_bounds = (self.border, self.border, self.imageSize[0], self.imageSize[1])
+        single_photo_bounds = (self.border, self.border, self.image_size[0], self.image_size[1])
         self.singleButton = self.game_window.screen.blit(self.singleImage, (single_photo_bounds[0], single_photo_bounds[1]))
-        multi_photo_boundsStart = (self.game_window.size[0] - self.border - self.imageSize[0], self.border)
-        multi_photo_bounds = (multi_photo_boundsStart[0], multi_photo_boundsStart[1], self.imageSize[0], self.imageSize[1])
+        multi_photo_bounds_start = (self.game_window.size[0] - self.border - self.image_size[0], self.border)
+        multi_photo_bounds = (multi_photo_bounds_start[0], multi_photo_bounds_start[1], self.image_size[0], self.image_size[1])
         self.multiButton = self.game_window.screen.blit(self.multiImage, (multi_photo_bounds[0], multi_photo_bounds[1]))
         pygame.display.flip()
 
@@ -77,10 +77,10 @@ class MainMenuScreen:
         if pygame.mouse.get_pressed()[0] == 1:
             if self.singleButton.collidepoint(pygame.mouse.get_pos()):
                 print('single button pressed')
-                return self.game_window.window["single"]
+                return "single"
             if self.multiButton.collidepoint(pygame.mouse.get_pos()):
                 print('multiple button pressed')
-                return self.game_window.window["multiple"]
+                return "multiple"
         return self
 
 
