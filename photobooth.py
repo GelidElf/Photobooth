@@ -6,15 +6,17 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Photobooth.')
 parser.add_argument('-f', '--full_screen', action='store_true', default=False)
-parser.add_argument('-x', type=int, default=1000)
-parser.add_argument('-y', type=int, default=500)
+parser.add_argument('-x', type=int, default=800)
+parser.add_argument('-y', type=int, default=480)
+parser.add_argument('-s', '--style', default='naranja_azul')
+parser.add_argument('-b', '--border', default=0)
 args = parser.parse_args()
 
 size = (args.x, args.y)
 
 
 def load_image(name, color_key=None):
-    fullname = os.path.join('images', name)
+    fullname = os.path.join('images', args.style, name)
     image = pygame.image.load(fullname)
     image = image.convert()
     if color_key is not None:
@@ -40,37 +42,37 @@ class GameWindow:
         self.current_window = self.windows["menu"]
 
     def transition(self, event):
-        self.current_window = self.windows(self.current_window.transition(event))
+        self.current_window = self.windows[self.current_window.transition(event)]
         return self.current_window
 
 
 class MainMenuScreen:
     game_window = None
     border = None
-    image_size = None
-    singleImage = None
-    singleButton = None
-    multiButton = None
+    welcome_image = None
+    menu_image = None
+    single_button = None
+    multi_button = None
 
     def __init__(self, game_window):
         self.game_window = game_window
-        self.border = 30
-        self.image_size = (int(game_window.size[0] / 2 - self.border - self.border / 2), int(game_window.size[1] - 2 * self.border))
-        self.singleImage, self.singleRect = load_image('single-photo.png', -1)
-        self.singleImage = pygame.transform.scale(self.singleImage, self.image_size)
-        self.multiImage, self.multiRect = load_image('multi-photo.png', -1)
-        self.multiImage = pygame.transform.scale(self.multiImage, self.image_size)
+        self.border = args.border
+        self.image_size = game_window.size
+        # (int(game_window.size[0] / 2 - self.border - self.border / 2), int(game_window.size[1] - 2 * self.border))
+        self.welcome_image, singleRect = load_image('Slide1.png', -1)
+        self.welcome_image = pygame.transform.scale(self.welcome_image, self.image_size)
+        self.menu_image, self.multiRect = load_image('Slide2.png', -1)
+        self.menu_image = pygame.transform.scale(self.menu_image, self.image_size)
 
     def tick(self):
         # self.game_window.clock.tick(2)
         pass
 
     def paint(self):
-        single_photo_bounds = (self.border, self.border, self.image_size[0], self.image_size[1])
-        self.singleButton = self.game_window.screen.blit(self.singleImage, (single_photo_bounds[0], single_photo_bounds[1]))
+        self.game_window.screen.blit(self.welcome_image, (0, 0))
+        self.single_button = (self.border, self.border, self.image_size[0]/2, self.image_size[1])
         multi_photo_bounds_start = (self.game_window.size[0] - self.border - self.image_size[0], self.border)
-        multi_photo_bounds = (multi_photo_bounds_start[0], multi_photo_bounds_start[1], self.image_size[0], self.image_size[1])
-        self.multiButton = self.game_window.screen.blit(self.multiImage, (multi_photo_bounds[0], multi_photo_bounds[1]))
+        self.multi_button = (multi_photo_bounds_start[0], multi_photo_bounds_start[1], self.image_size[0], self.image_size[1])
         pygame.display.flip()
 
     def transition(self, event):
@@ -81,7 +83,7 @@ class MainMenuScreen:
             if self.multiButton.collidepoint(pygame.mouse.get_pos()):
                 print('multiple button pressed')
                 return "multiple"
-        return self
+        return "menu"
 
 
 class SingleClockScreen:
@@ -104,7 +106,6 @@ class SingleClockScreen:
     def tick(self):
         self.counter -= 1
         self.text = str(self.counter).center(3) if self.counter > 0 else 'smile!'
-        # self.gw.clock.tick(60)
         time.sleep(1)
 
     def paint(self):
@@ -124,7 +125,7 @@ class MultipleClockScreen:
 
 
 args = parser.parse_args()
-gw = GameWindow(size, args.fullscreen)
+gw = GameWindow(size, args.full_screen)
 running = True
 window = gw.current_window
 while running:
