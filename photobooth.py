@@ -92,7 +92,7 @@ class Step:
 
     def paint(self, game_window):
         game_window.screen.fill(_WHITE)
-        game_window.screen.blit(self.image, (0, 0))
+        game_window.screen.blit(pygame.transform.smoothscale(self.image, size), (0, 0))
         if args.t and self.click_transitions:
             s = pygame.Surface(game_window.size)
             s.set_alpha(128)
