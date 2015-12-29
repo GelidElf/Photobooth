@@ -6,8 +6,8 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Photobooth.')
 parser.add_argument('-f', '--full_screen', action='store_true', default=False)
-parser.add_argument('-x', type=int, default=800)
-parser.add_argument('-y', type=int, default=480)
+parser.add_argument('-x', type=int, default=720)
+parser.add_argument('-y', type=int, default=576)
 parser.add_argument('-s', '--style', default='naranja_azul')
 parser.add_argument('-b', '--border', default=0)
 parser.add_argument('-t', action='store_true', default=False)
