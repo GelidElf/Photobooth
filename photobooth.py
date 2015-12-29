@@ -10,10 +10,13 @@ parser.add_argument('-x', type=int, default=800)
 parser.add_argument('-y', type=int, default=480)
 parser.add_argument('-s', '--style', default='naranja_azul')
 parser.add_argument('-b', '--border', default=0)
+parser.add_argument('-t', action='store_true', default=False)
 args = parser.parse_args()
 
 size = (args.x, args.y)
-
+_WHITE = (255, 255, 255)
+_RED = (255, 0, 0)
+_COUNTDOWNEVENT = pygame.USEREVENT + 1
 
 def load_image(name, color_key=None):
     fullname = os.path.join('images', args.style, name)
@@ -36,102 +39,94 @@ class GameWindow:
     def __init__(self, s, full_screen=False):
         self.screen, self.size = fborx.get_screen(s, full_screen)
         self.clock = pygame.time.Clock()
-        self.windows["menu"] = MainMenuScreen(self)
-        self.windows["single"] = SingleClockScreen(self)
-        self.windows["multiple"] = MultipleClockScreen(self)
-        self.current_window = self.windows["menu"]
+        self.windows["welcome"] = Step('Slide1.png', [("menu", pygame.Rect((0, 0), size))])
+        self.windows["menu"] = Step('Slide2.png', [("single-result",  pygame.Rect(0, 0, self.size[0]/2, self.size[1])),
+                                                   ("multiple-1-5", pygame.Rect(self.size[0]/2, 0, self.size[0], self.size[1]))])
+        self.windows["single"] = Step('Slide1.png', [("menu", pygame.Rect((0, 0), size))])
+        self.windows["multiple-1-5"] = Step('Slide3.png', None, ('multiple-1-4', 1))
+        self.windows["multiple-1-4"] = Step('Slide4.png', None, ('multiple-1-3', 1))
+        self.windows["multiple-1-3"] = Step('Slide5.png', None, ('multiple-1-2', 1))
+        self.windows["multiple-1-2"] = Step('Slide6.png', None, ('multiple-1-1', 1))
+        self.windows["multiple-1-1"] = Step('Slide7.png', None, ('multiple-2-5', 1))
+        self.windows["multiple-2-5"] = Step('Slide8.png', None, ('multiple-2-4', 1))
+        self.windows["multiple-2-4"] = Step('Slide9.png', None, ('multiple-2-3', 1))
+        self.windows["multiple-2-3"] = Step('Slide10.png', None, ('multiple-2-2', 1))
+        self.windows["multiple-2-2"] = Step('Slide11.png', None, ('multiple-2-1', 1))
+        self.windows["multiple-2-1"] = Step('Slide12.png', None, ('multiple-3-5', 1))
+        self.windows["multiple-3-5"] = Step('Slide13.png', None, ('multiple-3-4', 1))
+        self.windows["multiple-3-4"] = Step('Slide14.png', None, ('multiple-3-3', 1))
+        self.windows["multiple-3-3"] = Step('Slide15.png', None, ('multiple-3-2', 1))
+        self.windows["multiple-3-2"] = Step('Slide16.png', None, ('multiple-3-1', 1))
+        self.windows["multiple-3-1"] = Step('Slide17.png', None, ('multiple-4-5', 1))
+        self.windows["multiple-4-5"] = Step('Slide18.png', None, ('multiple-4-4', 1))
+        self.windows["multiple-4-4"] = Step('Slide19.png', None, ('multiple-4-3', 1))
+        self.windows["multiple-4-3"] = Step('Slide20.png', None, ('multiple-4-2', 1))
+        self.windows["multiple-4-2"] = Step('Slide21.png', None, ('multiple-4-1', 1))
+        self.windows["multiple-4-1"] = Step('Slide22.png', None, ('multiple-result', 1))
+        self.windows["multiple-result"] = Step('Slide23.png', [("menu",  pygame.Rect((0, self.size[1]-200), (200, self.size[1])))], ('welcome', 20))
+        self.windows["single-result"] = Step('Slide24.png', [("menu",  pygame.Rect((0, self.size[1]-200), (200, self.size[1])))], ('welcome', 20))
 
-    def transition(self, event):
-        self.current_window = self.windows[self.current_window.transition(event)]
+        self.current_window = self.windows["welcome"]
+
+    def transition(self, e):
+        next_window_name = self.current_window.transition(e)
+        if next_window_name:
+            self.current_window = self.windows[next_window_name]
         return self.current_window
 
 
-class MainMenuScreen:
-    game_window = None
-    border = None
-    welcome_image = None
-    menu_image = None
-    single_button = None
-    multi_button = None
+class Step:
 
-    def __init__(self, game_window):
-        self.game_window = game_window
-        self.border = args.border
-        self.image_size = game_window.size
-        # (int(game_window.size[0] / 2 - self.border - self.border / 2), int(game_window.size[1] - 2 * self.border))
-        self.welcome_image, singleRect = load_image('Slide1.png', -1)
-        self.welcome_image = pygame.transform.scale(self.welcome_image, self.image_size)
-        self.menu_image, self.multiRect = load_image('Slide2.png', -1)
-        self.menu_image = pygame.transform.scale(self.menu_image, self.image_size)
+    start_time = None
+    image = None
+    click_transitions = []
+    time_transitions = None
+    event_transitions = []
+
+    def __init__(self, image_name, click_transitions=None, time_transitions=None, event_transitions=None):
+        self.start_time = None
+        self.image, singleRect = load_image(image_name, -1)
+        self.click_transitions = click_transitions
+        self.time_transitions = time_transitions
+        self.event_transitions = event_transitions
+
+    def paint(self, game_window):
+        game_window.screen.fill(_WHITE)
+        game_window.screen.blit(self.image, (0, 0))
+        if args.t and self.click_transitions:
+            s = pygame.Surface(game_window.size)
+            s.set_alpha(128)
+            s.fill(_WHITE)
+            for tran in self.click_transitions:
+                pygame.draw.rect(s, _RED, tran[1], 10)
+            game_window.screen.blit(s, (0, 0))
+
+        pygame.display.flip()
+
+    def transition(self, e):
+        if self.click_transitions and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
+            for tran in self.click_transitions:
+                if tran[1].collidepoint(e.pos):
+                    return tran[0]
+        if self.time_transitions:
+            if not self.start_time:
+                self.start_time = True
+                pygame.time.set_timer(_COUNTDOWNEVENT, self.time_transitions[1]*1000)
+            if e.type == _COUNTDOWNEVENT:
+                self.start_time = False
+                return self.time_transitions[0]
+        return None
 
     def tick(self):
-        # self.game_window.clock.tick(2)
         pass
-
-    def paint(self):
-        self.game_window.screen.blit(self.welcome_image, (0, 0))
-        self.single_button = (self.border, self.border, self.image_size[0]/2, self.image_size[1])
-        multi_photo_bounds_start = (self.game_window.size[0] - self.border - self.image_size[0], self.border)
-        self.multi_button = (multi_photo_bounds_start[0], multi_photo_bounds_start[1], self.image_size[0], self.image_size[1])
-        pygame.display.flip()
-
-    def transition(self, event):
-        if pygame.mouse.get_pressed()[0] == 1:
-            if self.singleButton.collidepoint(pygame.mouse.get_pos()):
-                print('single button pressed')
-                return "single"
-            if self.multiButton.collidepoint(pygame.mouse.get_pos()):
-                print('multiple button pressed')
-                return "multiple"
-        return "menu"
-
-
-class SingleClockScreen:
-    counter, text = 5, '5'.center(3)
-    gw = None
-    font = None
-    image_5 = None
-    image_4 = None
-    image_3 = None
-    image_2 = None
-    image_1 = None
-
-    def __init__(self, game_window, start=None):
-        self.gw = game_window
-        if start:
-            self.counter, self.text = start, str(start).center(3)
-        pygame.time.set_timer(pygame.USEREVENT, 1000)
-        self.font = pygame.font.SysFont('Consolas', 400)
-
-    def tick(self):
-        self.counter -= 1
-        self.text = str(self.counter).center(3) if self.counter > 0 else 'smile!'
-        time.sleep(1)
-
-    def paint(self):
-        self.gw.screen.fill((255, 255, 255))
-        display_text = self.font.render(self.text, True, (0, 0, 0))
-        display_size = display_text.get_size()
-        position = ((self.gw.size[0] - display_size[0]) / 2, (self.gw.size[1] - display_size[1]) / 2)
-        self.gw.screen.blit(display_text, position)
-        pygame.display.flip()
-
-
-class MultipleClockScreen:
-    gw = None
-
-    def __init__(self, game_window):
-        self.gw = game_window
-
 
 args = parser.parse_args()
 gw = GameWindow(size, args.full_screen)
 running = True
-window = gw.current_window
 while running:
 
-    window.paint()
-    window.tick()
+    gw.current_window.paint(gw)
+    gw.current_window.tick()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -139,6 +134,7 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
         gw.transition(event)
+        gw.clock.tick(60)
 
 # make sure to call pygame.quit() if using the framebuffer to get back to your terminal
 pygame.quit()
