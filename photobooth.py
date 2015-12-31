@@ -1,8 +1,8 @@
 import os
-import time
 import pygame
 import fborx
 import argparse
+import subprocess
 
 parser = argparse.ArgumentParser(description='Photobooth.')
 parser.add_argument('-f', '--full_screen', action='store_true', default=False)
@@ -46,9 +46,9 @@ class GameWindow:
         self.windows["multiple-1-5"] = Step('Slide3.PNG', None, ('multiple-1-4', 1))
         self.windows["multiple-1-4"] = Step('Slide4.PNG', None, ('multiple-1-3', 1))
         self.windows["multiple-1-3"] = Step('Slide5.PNG', None, ('multiple-1-2', 1))
-        self.windows["multiple-1-2"] = Step('Slide6.PNG', None, ('multiple-1-1', 1))
+        self.windows["multiple-1-2"] = Step('Slide6.PNG', None, ('multiple-1-1', 1)))
         self.windows["multiple-1-1"] = Step('Slide7.PNG', None, ('multiple-1-0', 1))
-        self.windows["multiple-1-0"] = Step(None, None, ('multiple-2-5', 2))
+        self.windows["multiple-1-0"] = Step(None, command=('multiple-2-5','gphoto2 --capture-image'))
         self.windows["multiple-2-5"] = Step('Slide8.PNG', None, ('multiple-2-4', 1))
         self.windows["multiple-2-4"] = Step('Slide9.PNG', None, ('multiple-2-3', 1))
         self.windows["multiple-2-3"] = Step('Slide10.PNG', None, ('multiple-2-2', 1))
@@ -83,14 +83,16 @@ class Step:
     click_transitions = []
     time_transitions = None
     event_transitions = []
+    command = None
 
-    def __init__(self, image_name, click_transitions=None, time_transitions=None, event_transitions=None):
+    def __init__(self, image_name, click_transitions=None, time_transitions=None, event_transitions=None, command=None):
         self.start_time = None
         if image_name:
             self.image, singleRect = load_image(image_name, -1)
         self.click_transitions = click_transitions
         self.time_transitions = time_transitions
         self.event_transitions = event_transitions
+        self.command = command
 
     def paint(self, game_window):
         game_window.screen.fill(_WHITE)
@@ -107,6 +109,8 @@ class Step:
         pygame.display.flip()
 
     def transition(self, e):
+        if self.command:
+            subprocess.check_call(self.command[1].split(' '))
         if self.click_transitions and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             for tran in self.click_transitions:
                 if tran[1].collidepoint(e.pos):
