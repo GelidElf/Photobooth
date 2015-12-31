@@ -113,6 +113,7 @@ class Step:
         if self.command and not self.command_running:
             self.command_running = True
             subprocess.check_call(self.command[1].split(' '))
+            self.command_running = False
         if self.click_transitions and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             for tran in self.click_transitions:
                 if tran[1].collidepoint(e.pos):
