@@ -47,7 +47,8 @@ class GameWindow:
         self.windows["multiple-1-4"] = Step('Slide4.PNG', None, ('multiple-1-3', 1))
         self.windows["multiple-1-3"] = Step('Slide5.PNG', None, ('multiple-1-2', 1))
         self.windows["multiple-1-2"] = Step('Slide6.PNG', None, ('multiple-1-1', 1))
-        self.windows["multiple-1-1"] = Step('Slide7.PNG', None, ('multiple-2-5', 1))
+        self.windows["multiple-1-1"] = Step('Slide7.PNG', None, ('multiple-1-0', 1))
+        self.windows["multiple-1-0"] = Step(None, None, ('multiple-2-5', 2))
         self.windows["multiple-2-5"] = Step('Slide8.PNG', None, ('multiple-2-4', 1))
         self.windows["multiple-2-4"] = Step('Slide9.PNG', None, ('multiple-2-3', 1))
         self.windows["multiple-2-3"] = Step('Slide10.PNG', None, ('multiple-2-2', 1))
@@ -85,14 +86,16 @@ class Step:
 
     def __init__(self, image_name, click_transitions=None, time_transitions=None, event_transitions=None):
         self.start_time = None
-        self.image, singleRect = load_image(image_name, -1)
+        if image_name:
+            self.image, singleRect = load_image(image_name, -1)
         self.click_transitions = click_transitions
         self.time_transitions = time_transitions
         self.event_transitions = event_transitions
 
     def paint(self, game_window):
         game_window.screen.fill(_WHITE)
-        game_window.screen.blit(pygame.transform.smoothscale(self.image, size), (0, 0))
+        if self.image:
+            game_window.screen.blit(pygame.transform.scale(self.image, size), (0, 0))
         if args.t and self.click_transitions:
             s = pygame.Surface(game_window.size)
             s.set_alpha(128)
@@ -110,11 +113,11 @@ class Step:
                     return tran[0]
         if self.time_transitions:
             if not self.start_time:
-                self.start_time = True
-                pygame.time.set_timer(_COUNTDOWNEVENT, self.time_transitions[1]*1000)
+                self.start_time = 0
             if e.type == _COUNTDOWNEVENT:
-                self.start_time = False
-                return self.time_transitions[0]
+                self.start_time += 1
+                if self.start_time == self.time_transitions[1]:
+                    return self.time_transitions[0]
         return None
 
     def tick(self):
@@ -122,6 +125,7 @@ class Step:
 
 args = parser.parse_args()
 gw = GameWindow(size, args.full_screen)
+pygame.time.set_timer(_COUNTDOWNEVENT, 1000)
 running = True
 while running:
 
