@@ -46,7 +46,7 @@ class GameWindow:
         self.windows["multiple-1-5"] = Step('Slide3.PNG', None, ('multiple-1-4', 1))
         self.windows["multiple-1-4"] = Step('Slide4.PNG', None, ('multiple-1-3', 1))
         self.windows["multiple-1-3"] = Step('Slide5.PNG', None, ('multiple-1-2', 1))
-        self.windows["multiple-1-2"] = Step('Slide6.PNG', None, ('multiple-1-1', 1)))
+        self.windows["multiple-1-2"] = Step('Slide6.PNG', None, ('multiple-1-1', 1))
         self.windows["multiple-1-1"] = Step('Slide7.PNG', None, ('multiple-1-0', 1))
         self.windows["multiple-1-0"] = Step(None, command=('multiple-2-5','gphoto2 --capture-image'))
         self.windows["multiple-2-5"] = Step('Slide8.PNG', None, ('multiple-2-4', 1))
