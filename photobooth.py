@@ -47,8 +47,8 @@ class GameWindow:
         self.windows["multiple-1-4"] = Step('Slide4.PNG', None, ('multiple-1-3', 1))
         self.windows["multiple-1-3"] = Step('Slide5.PNG', None, ('multiple-1-2', 1))
         self.windows["multiple-1-2"] = Step('Slide6.PNG', None, ('multiple-1-1', 1))
-        self.windows["multiple-1-1"] = Step('Slide7.PNG', None, ('multiple-1-0', 1), command=('multiple-2-5', 'gphoto2 --trigger-capture'))
-        self.windows["multiple-1-0"] = Step(None, command=('multiple-2-5', 'gphoto2 --wait-event-and-download --filename "A.jpg"'))
+        self.windows["multiple-1-1"] = Step('Slide7.PNG', None, ('multiple-1-0', 1))
+        self.windows["multiple-1-0"] = Step(None, command=('multiple-2-5', 'gphoto2 --capture-image-and-download --filename="A.jpg" --force-overwrite'))
         self.windows["multiple-2-5"] = Step('Slide8.PNG', None, ('multiple-2-4', 1))
         self.windows["multiple-2-4"] = Step('Slide9.PNG', None, ('multiple-2-3', 1))
         self.windows["multiple-2-3"] = Step('Slide10.PNG', None, ('multiple-2-2', 1))
@@ -73,6 +73,7 @@ class GameWindow:
         next_window_name = self.current_window.transition(e)
         if next_window_name:
             self.current_window = self.windows[next_window_name]
+            self.current_window.execute()
         return self.current_window
 
 
@@ -109,11 +110,14 @@ class Step:
 
         pygame.display.flip()
 
-    def transition(self, e):
+    def execute(self):
         if self.command and not self.command_running:
             self.command_running = True
-            subprocess.check_call(self.command[1].split(' '))
+            subprocess.call(self.command[1].split(' '), shell=True)
             self.command_running = False
+            return self.command[0]
+
+    def transition(self, e):
         if self.click_transitions and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             for tran in self.click_transitions:
                 if tran[1].collidepoint(e.pos):
