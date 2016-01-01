@@ -44,33 +44,33 @@ class GameWindow:
         self.windows["menu"] = Step('Slide2.PNG', [("single-5",  pygame.Rect(0, 0, self.size[0]/2, self.size[1])),
                                                    ("multiple-1-5", pygame.Rect(self.size[0]/2, 0, self.size[0], self.size[1]))])
         self.windows["single"] = Step('Slide1.PNG', [("menu", pygame.Rect((0, 0), size))])
-        self.windows["single-5"] = Step('Slide3 (2).PNG', None, ('single-4', 1))
+        self.windows["single-5"] = Step('Slide3 (2).PNG', None, ('single-4', 2))
         self.windows["single-4"] = Step('Slide4 (2).PNG', None, ('single-3', 1))
         self.windows["single-3"] = Step('Slide5 (2).PNG', None, ('single-2', 1))
         self.windows["single-2"] = Step('Slide6 (2).PNG', None, ('single-1', 1))
         self.windows["single-1"] = Step('Slide7 (2).PNG', None, ('single-0', 1))
         self.windows["single-0"] = Step(None, command=('single-result', 'gphoto2 --capture-image-and-download --filename="A.jpg" --force-overwrite'))
 
-        self.windows["multiple-1-5"] = Step('Slide3.PNG', None, ('multiple-1-4', 1))
+        self.windows["multiple-1-5"] = Step('Slide3.PNG', None, ('multiple-1-4', 2))
         self.windows["multiple-1-4"] = Step('Slide4.PNG', None, ('multiple-1-3', 1))
         self.windows["multiple-1-3"] = Step('Slide5.PNG', None, ('multiple-1-2', 1))
         self.windows["multiple-1-2"] = Step('Slide6.PNG', None, ('multiple-1-1', 1))
         self.windows["multiple-1-1"] = Step('Slide7.PNG', None, ('multiple-1-0', 1))
         self.windows["multiple-1-0"] = Step(None, command=('multiple-2-5', 'gphoto2 --capture-image-and-download --filename="A.jpg" --force-overwrite'))
 
-        self.windows["multiple-2-5"] = Step('Slide8.PNG', None, ('multiple-2-4', 1))
+        self.windows["multiple-2-5"] = Step('Slide8.PNG', None, ('multiple-2-4', 2))
         self.windows["multiple-2-4"] = Step('Slide9.PNG', None, ('multiple-2-3', 1))
         self.windows["multiple-2-3"] = Step('Slide10.PNG', None, ('multiple-2-2', 1))
         self.windows["multiple-2-2"] = Step('Slide11.PNG', None, ('multiple-2-1', 1))
         self.windows["multiple-2-1"] = Step('Slide12.PNG', None, ('multiple-3-5', 1))
 
-        self.windows["multiple-3-5"] = Step('Slide13.PNG', None, ('multiple-3-4', 1))
+        self.windows["multiple-3-5"] = Step('Slide13.PNG', None, ('multiple-3-4', 2))
         self.windows["multiple-3-4"] = Step('Slide14.PNG', None, ('multiple-3-3', 1))
         self.windows["multiple-3-3"] = Step('Slide15.PNG', None, ('multiple-3-2', 1))
         self.windows["multiple-3-2"] = Step('Slide16.PNG', None, ('multiple-3-1', 1))
         self.windows["multiple-3-1"] = Step('Slide17.PNG', None, ('multiple-4-5', 1))
 
-        self.windows["multiple-4-5"] = Step('Slide18.PNG', None, ('multiple-4-4', 1))
+        self.windows["multiple-4-5"] = Step('Slide18.PNG', None, ('multiple-4-4', 2))
         self.windows["multiple-4-4"] = Step('Slide19.PNG', None, ('multiple-4-3', 1))
         self.windows["multiple-4-3"] = Step('Slide20.PNG', None, ('multiple-4-2', 1))
         self.windows["multiple-4-2"] = Step('Slide21.PNG', None, ('multiple-4-1', 1))
@@ -94,17 +94,17 @@ class Step:
     start_time = None
     image = None
     click_transitions = []
-    time_transitions = None
+    time_transition = None
     event_transitions = []
     command = None
     command_running = False
 
-    def __init__(self, image_name, click_transitions=None, time_transitions=None, event_transitions=None, command=None):
+    def __init__(self, image_name, click_transitions=None, time_transition=None, event_transitions=None, command=None):
         self.start_time = None
         if image_name:
             self.image, singleRect = load_image(image_name, -1)
         self.click_transitions = click_transitions
-        self.time_transitions = time_transitions
+        self.time_transition = time_transition
         self.event_transitions = event_transitions
         self.command = command
 
@@ -123,24 +123,29 @@ class Step:
         pygame.display.flip()
 
     def execute(self):
-        if self.command and not self.command_running and not args.nc:
-            self.command_running = True
-            subprocess.call(self.command[1].split(' '), shell=True)
-            self.command_running = False
-            return self.command[0]
+
+        if self.command and not self.command_running:
+            if args.nc:
+                self.time_transition = (self.command[0], 1)
+            else:
+                self.command_running = True
+                subprocess.call(self.command[1].split(' '), shell=True)
+                self.command_running = False
+                return self.command[0]
 
     def transition(self, e):
         if self.click_transitions and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             for tran in self.click_transitions:
                 if tran[1].collidepoint(e.pos):
                     return tran[0]
-        if self.time_transitions:
+        if self.time_transition:
             if not self.start_time:
                 self.start_time = 0
             if e.type == _COUNTDOWNEVENT:
                 self.start_time += 1
-                if self.start_time == self.time_transitions[1]:
-                    return self.time_transitions[0]
+                if self.start_time == self.time_transition[1]:
+                    self.start_time = 0
+                    return self.time_transition[0]
         return None
 
     def tick(self):
