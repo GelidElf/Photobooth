@@ -10,14 +10,15 @@ parser.add_argument('-x', type=int, default=720)
 parser.add_argument('-y', type=int, default=576)
 parser.add_argument('-s', '--style', default='naranja_azul')
 parser.add_argument('-b', '--border', default=0)
-parser.add_argument('-t', action='store_true', default=False)
-parser.add_argument('-nc', action='store_true', default=False)
+parser.add_argument('-tca', '--test_click_area', action='store_true', default=False)
+parser.add_argument('-ti', '--test-image', action='store_true', default=False)
 args = parser.parse_args()
 
 size = (args.x, args.y)
 _WHITE = (255, 255, 255)
 _RED = (255, 0, 0)
-_COUNTDOWNEVENT = pygame.USEREVENT + 1
+_COUNT_DOWN_EVENT = pygame.USEREVENT + 1
+
 
 def load_image(name, color_key=None):
     fullname = os.path.join('images', args.style, name)
@@ -112,7 +113,7 @@ class Step:
         game_window.screen.fill(_WHITE)
         if self.image:
             game_window.screen.blit(pygame.transform.scale(self.image, size), (0, 0))
-        if args.t and self.click_transitions:
+        if args.test_click_area and self.click_transitions:
             s = pygame.Surface(game_window.size)
             s.set_alpha(128)
             s.fill(_WHITE)
@@ -125,7 +126,7 @@ class Step:
     def execute(self):
 
         if self.command and not self.command_running:
-            if args.nc:
+            if args.test_image:
                 self.time_transition = (self.command[0], 1)
             else:
                 self.command_running = True
@@ -141,7 +142,7 @@ class Step:
         if self.time_transition:
             if not self.start_time:
                 self.start_time = 0
-            if e.type == _COUNTDOWNEVENT:
+            if e.type == _COUNT_DOWN_EVENT:
                 self.start_time += 1
                 if self.start_time == self.time_transition[1]:
                     self.start_time = 0
@@ -153,7 +154,7 @@ class Step:
 
 args = parser.parse_args()
 gw = GameWindow(size, args.full_screen)
-pygame.time.set_timer(_COUNTDOWNEVENT, 1000)
+pygame.time.set_timer(_COUNT_DOWN_EVENT, 1000)
 running = True
 while running:
 
