@@ -11,6 +11,7 @@ parser.add_argument('-y', type=int, default=576)
 parser.add_argument('-s', '--style', default='naranja_azul')
 parser.add_argument('-b', '--border', default=0)
 parser.add_argument('-t', action='store_true', default=False)
+parser.add_argument('-nc', action='store_true', default=False)
 args = parser.parse_args()
 
 size = (args.x, args.y)
@@ -40,30 +41,41 @@ class GameWindow:
         self.screen, self.size = fborx.get_screen(s, full_screen)
         self.clock = pygame.time.Clock()
         self.windows["welcome"] = Step('Slide1.PNG', [("menu", pygame.Rect((0, 0), size))])
-        self.windows["menu"] = Step('Slide2.PNG', [("single-result",  pygame.Rect(0, 0, self.size[0]/2, self.size[1])),
+        self.windows["menu"] = Step('Slide2.PNG', [("single-5",  pygame.Rect(0, 0, self.size[0]/2, self.size[1])),
                                                    ("multiple-1-5", pygame.Rect(self.size[0]/2, 0, self.size[0], self.size[1]))])
         self.windows["single"] = Step('Slide1.PNG', [("menu", pygame.Rect((0, 0), size))])
+        self.windows["single-5"] = Step('Slide3 (2).PNG', None, ('single-4', 1))
+        self.windows["single-4"] = Step('Slide4 (2).PNG', None, ('single-3', 1))
+        self.windows["single-3"] = Step('Slide5 (2).PNG', None, ('single-2', 1))
+        self.windows["single-2"] = Step('Slide6 (2).PNG', None, ('single-1', 1))
+        self.windows["single-1"] = Step('Slide7 (2).PNG', None, ('single-0', 1))
+        self.windows["single-0"] = Step(None, command=('single-result', 'gphoto2 --capture-image-and-download --filename="A.jpg" --force-overwrite'))
+
         self.windows["multiple-1-5"] = Step('Slide3.PNG', None, ('multiple-1-4', 1))
         self.windows["multiple-1-4"] = Step('Slide4.PNG', None, ('multiple-1-3', 1))
         self.windows["multiple-1-3"] = Step('Slide5.PNG', None, ('multiple-1-2', 1))
         self.windows["multiple-1-2"] = Step('Slide6.PNG', None, ('multiple-1-1', 1))
         self.windows["multiple-1-1"] = Step('Slide7.PNG', None, ('multiple-1-0', 1))
         self.windows["multiple-1-0"] = Step(None, command=('multiple-2-5', 'gphoto2 --capture-image-and-download --filename="A.jpg" --force-overwrite'))
+
         self.windows["multiple-2-5"] = Step('Slide8.PNG', None, ('multiple-2-4', 1))
         self.windows["multiple-2-4"] = Step('Slide9.PNG', None, ('multiple-2-3', 1))
         self.windows["multiple-2-3"] = Step('Slide10.PNG', None, ('multiple-2-2', 1))
         self.windows["multiple-2-2"] = Step('Slide11.PNG', None, ('multiple-2-1', 1))
         self.windows["multiple-2-1"] = Step('Slide12.PNG', None, ('multiple-3-5', 1))
+
         self.windows["multiple-3-5"] = Step('Slide13.PNG', None, ('multiple-3-4', 1))
         self.windows["multiple-3-4"] = Step('Slide14.PNG', None, ('multiple-3-3', 1))
         self.windows["multiple-3-3"] = Step('Slide15.PNG', None, ('multiple-3-2', 1))
         self.windows["multiple-3-2"] = Step('Slide16.PNG', None, ('multiple-3-1', 1))
         self.windows["multiple-3-1"] = Step('Slide17.PNG', None, ('multiple-4-5', 1))
+
         self.windows["multiple-4-5"] = Step('Slide18.PNG', None, ('multiple-4-4', 1))
         self.windows["multiple-4-4"] = Step('Slide19.PNG', None, ('multiple-4-3', 1))
         self.windows["multiple-4-3"] = Step('Slide20.PNG', None, ('multiple-4-2', 1))
         self.windows["multiple-4-2"] = Step('Slide21.PNG', None, ('multiple-4-1', 1))
         self.windows["multiple-4-1"] = Step('Slide22.PNG', None, ('multiple-result', 1))
+
         self.windows["multiple-result"] = Step('Slide23.PNG', [("menu",  pygame.Rect((0, self.size[1]-200), (200, self.size[1])))], ('welcome', 20))
         self.windows["single-result"] = Step('Slide24.PNG', [("menu",  pygame.Rect((0, self.size[1]-200), (200, self.size[1])))], ('welcome', 20))
 
@@ -111,7 +123,7 @@ class Step:
         pygame.display.flip()
 
     def execute(self):
-        if self.command and not self.command_running:
+        if self.command and not self.command_running and not args.nc:
             self.command_running = True
             subprocess.call(self.command[1].split(' '), shell=True)
             self.command_running = False
