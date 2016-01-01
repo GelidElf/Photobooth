@@ -18,6 +18,7 @@ size = (args.x, args.y)
 _WHITE = (255, 255, 255)
 _RED = (255, 0, 0)
 _COUNT_DOWN_EVENT = pygame.USEREVENT + 1
+_RESULT_AREA = (200, 0, size[0], size[1])
 
 
 def load_image(name, color_key=None):
@@ -149,8 +150,6 @@ class Step:
                     return self.time_transition[0]
         return None
 
-    def tick(self):
-        pass
 
 args = parser.parse_args()
 gw = GameWindow(size, args.full_screen)
@@ -159,7 +158,6 @@ running = True
 while running:
 
     gw.current_window.paint(gw)
-    gw.current_window.tick()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -167,7 +165,7 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
         gw.transition(event)
-        gw.clock.tick(60)
+    gw.clock.tick(60)
 
 # make sure to call pygame.quit() if using the framebuffer to get back to your terminal
 pygame.quit()
