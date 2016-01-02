@@ -18,11 +18,15 @@ size = (args.x, args.y)
 _WHITE = (255, 255, 255)
 _RED = (255, 0, 0)
 _COUNT_DOWN_EVENT = pygame.USEREVENT + 1
-_RESULT_AREA = (200, 0, size[0], size[1])
+_RESULT_AREA = (198, 0, size[0]-30, size[1])
+_RESULT_AREA_SIZE = (_RESULT_AREA[2]-_RESULT_AREA[0], _RESULT_AREA[3]-_RESULT_AREA[1])
 
 
-def load_image(name, color_key=None):
-    fullname = os.path.join('images', args.style, name)
+def load_image(name, color_key=None, style=None):
+    if not style:
+        fullname = os.path.join('images', name)
+    else:
+        fullname = os.path.join('images', style, name)
     image = pygame.image.load(fullname)
     image = image.convert()
     if color_key is not None:
@@ -38,6 +42,7 @@ class GameWindow:
     clock = None
     windows = {}
     current_window = None
+    last_result_image = None
 
     def __init__(self, s, full_screen=False):
         self.screen, self.size = fborx.get_screen(s, full_screen)
@@ -78,8 +83,8 @@ class GameWindow:
         self.windows["multiple-4-2"] = Step('Slide21.PNG', None, ('multiple-4-1', 1))
         self.windows["multiple-4-1"] = Step('Slide22.PNG', None, ('multiple-result', 1))
 
-        self.windows["multiple-result"] = Step('Slide23.PNG', [("menu",  pygame.Rect((0, self.size[1]-200), (200, self.size[1])))], ('welcome', 20))
-        self.windows["single-result"] = Step('Slide24.PNG', [("menu",  pygame.Rect((0, self.size[1]-200), (200, self.size[1])))], ('welcome', 20))
+        self.windows["multiple-result"] = Step('Slide23.PNG', [("menu",  pygame.Rect((0, self.size[1]-200), (200, self.size[1])))], ('welcome', 20), result=True)
+        self.windows["single-result"] = Step('Slide24.PNG', [("menu",  pygame.Rect((0, self.size[1]-200), (200, self.size[1])))], ('welcome', 20), result=True)
 
         self.current_window = self.windows["welcome"]
 
@@ -87,7 +92,7 @@ class GameWindow:
         next_window_name = self.current_window.transition(e)
         if next_window_name:
             self.current_window = self.windows[next_window_name]
-            self.current_window.execute()
+            self.current_window.execute(self)
         return self.current_window
 
 
@@ -100,15 +105,17 @@ class Step:
     event_transitions = []
     command = None
     command_running = False
+    result = False
 
-    def __init__(self, image_name, click_transitions=None, time_transition=None, event_transitions=None, command=None):
+    def __init__(self, image_name, click_transitions=None, time_transition=None, event_transitions=None, command=None, result=False):
         self.start_time = None
         if image_name:
-            self.image, singleRect = load_image(image_name, -1)
+            self.image, singleRect = load_image(image_name, -1, args.style)
         self.click_transitions = click_transitions
         self.time_transition = time_transition
         self.event_transitions = event_transitions
         self.command = command
+        self.result = result
 
     def paint(self, game_window):
         game_window.screen.fill(_WHITE)
@@ -121,13 +128,23 @@ class Step:
             for tran in self.click_transitions:
                 pygame.draw.rect(s, _RED, tran[1], 10)
             game_window.screen.blit(s, (0, 0))
-
+        if self.result and game_window.last_result_image:
+            x_ratio = _RESULT_AREA_SIZE[0]/game_window.last_result_image[1][2]
+            y_ratio = _RESULT_AREA_SIZE[1]/game_window.last_result_image[1][3]
+            result_mid_point = (_RESULT_AREA[0]+_RESULT_AREA_SIZE[0]/2, _RESULT_AREA[1]+_RESULT_AREA_SIZE[1]/2)
+            if x_ratio < y_ratio:
+                transform_size = (int(game_window.last_result_image[1][2] * x_ratio), int(game_window.last_result_image[1][3] * x_ratio))
+            else:
+                transform_size = (int(game_window.last_result_image[1][2] * y_ratio), int(game_window.last_result_image[1][3] * y_ratio))
+            transformed_image = pygame.transform.scale(game_window.last_result_image[0], transform_size)
+            game_window.screen.blit(transformed_image, (result_mid_point[0]-transform_size[0]/2, result_mid_point[1]-transform_size[1]/2))
         pygame.display.flip()
 
-    def execute(self):
+    def execute(self, game_window):
 
         if self.command and not self.command_running:
             if args.test_image:
+                game_window.last_result_image = load_image('maxresdefault.jpg', -1)
                 self.time_transition = (self.command[0], 1)
             else:
                 self.command_running = True
