@@ -20,6 +20,7 @@ _RED = (255, 0, 0)
 _COUNT_DOWN_EVENT = pygame.USEREVENT + 1
 _RESULT_AREA = (198, 0, size[0]-30, size[1])
 _RESULT_AREA_SIZE = (_RESULT_AREA[2]-_RESULT_AREA[0], _RESULT_AREA[3]-_RESULT_AREA[1])
+_RESULT_AREA_MID_POINT = (_RESULT_AREA[0] + _RESULT_AREA_SIZE[0] / 2, _RESULT_AREA[1] + _RESULT_AREA_SIZE[1] / 2)
 
 
 def load_image(name, color_key=None, style=None):
@@ -131,13 +132,16 @@ class Step:
         if self.result and game_window.last_result_image:
             x_ratio = _RESULT_AREA_SIZE[0]/game_window.last_result_image[1][2]
             y_ratio = _RESULT_AREA_SIZE[1]/game_window.last_result_image[1][3]
-            result_mid_point = (_RESULT_AREA[0]+_RESULT_AREA_SIZE[0]/2, _RESULT_AREA[1]+_RESULT_AREA_SIZE[1]/2)
             if x_ratio < y_ratio:
-                transform_size = (int(game_window.last_result_image[1][2] * x_ratio), int(game_window.last_result_image[1][3] * x_ratio))
+                transform_result_size = (int(game_window.last_result_image[1][2] * x_ratio),
+                                         int(game_window.last_result_image[1][3] * x_ratio))
             else:
-                transform_size = (int(game_window.last_result_image[1][2] * y_ratio), int(game_window.last_result_image[1][3] * y_ratio))
-            transformed_image = pygame.transform.scale(game_window.last_result_image[0], transform_size)
-            game_window.screen.blit(transformed_image, (result_mid_point[0]-transform_size[0]/2, result_mid_point[1]-transform_size[1]/2))
+                transform_result_size = (int(game_window.last_result_image[1][2] * y_ratio),
+                                         int(game_window.last_result_image[1][3] * y_ratio))
+            transform_result_start = (_RESULT_AREA_MID_POINT[0] - transform_result_size[0] / 2,
+                                      _RESULT_AREA_MID_POINT[1] - transform_result_size[1] / 2)
+            transformed_image = pygame.transform.scale(game_window.last_result_image[0], transform_result_size)
+            game_window.screen.blit(transformed_image, transform_result_start)
         pygame.display.flip()
 
     def execute(self, game_window):
