@@ -83,9 +83,9 @@ class GameWindow:
         self.windows["multiple-4-3"] = Step('Slide20.PNG', None, ('multiple-4-2', 1))
         self.windows["multiple-4-2"] = Step('Slide21.PNG', None, ('multiple-4-1', 1))
         self.windows["multiple-4-1"] = Step('Slide22.PNG', None, ('multiple-result', 1))
-
-        self.windows["multiple-result"] = Step('Slide23.PNG', [("menu",  pygame.Rect((0, self.size[1]-200), (200, self.size[1])))], ('welcome', 20), result=True)
-        self.windows["single-result"] = Step('Slide24.PNG', [("menu",  pygame.Rect((0, self.size[1]-200), (200, self.size[1])))], ('welcome', 20), result=True)
+        return_to_menu = pygame.Rect((0, self.size[1]-200), (200, self.size[1]))
+        self.windows["multiple-result"] = Step('Slide23.PNG', [("menu", return_to_menu)], ('welcome', 20), result=True)
+        self.windows["single-result"] = Step('Slide24.PNG', [("menu",  return_to_menu)], ('welcome', 20), result=True)
 
         self.current_window = self.windows["welcome"]
 
