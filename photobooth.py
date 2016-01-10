@@ -139,7 +139,7 @@ class GameWindow:
 
 class Step:
 
-    start_time = None
+    start_time = 0
     image = None
     click_transitions = []
     time_transition = None
@@ -149,7 +149,7 @@ class Step:
     result = False
 
     def __init__(self, image_name, click_transitions=None, time_transition=None, event_transitions=None, command=None, result=False):
-        self.start_time = None
+        self.start_time = 0
         if image_name:
             self.image, singleRect = load_image(image_name, -1, args.style)
         self.click_transitions = click_transitions
@@ -189,7 +189,6 @@ class Step:
         if self.command and not self.command_running:
             if args.test_image:
                 game_window.last_result_image = load_image('images/maxresdefault.jpg', -1)
-                return self.command[0]
             else:
                 self.command_running = True
                 photo_name = game_window.generator.next_photo_path().raw
@@ -198,18 +197,19 @@ class Step:
                 subprocess.call(command.split(' '))
                 game_window.last_result_image = load_image(photo_name, -1)
                 self.command_running = False
-                return self.command[0]
+            self.start_time = 0
+            return self.command[0]
 
     def transition(self, e, game_window):
         if self.command:
+            self.start_time = 0
             return self.execute(game_window)
         if self.click_transitions and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             for tran in self.click_transitions:
                 if tran[1].collidepoint(e.pos):
+                    self.start_time = 0
                     return tran[0]
         if self.time_transition:
-            if not self.start_time:
-                self.start_time = 0
             if e.type == _COUNT_DOWN_EVENT:
                 self.start_time += 1
                 if self.start_time == self.time_transition[1]:
