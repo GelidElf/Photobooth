@@ -3,6 +3,7 @@ import pygame
 import fborx
 import argparse
 import subprocess
+import string
 
 parser = argparse.ArgumentParser(description='Photobooth.')
 parser.add_argument('-f', '--full_screen', action='store_true', default=False)
@@ -12,6 +13,11 @@ parser.add_argument('-s', '--style', default='naranja_azul')
 parser.add_argument('-b', '--border', default=0)
 parser.add_argument('-tca', '--test_click_area', action='store_true', default=False)
 parser.add_argument('-ti', '--test-image', action='store_true', default=False)
+parser.add_argument('--prefix', default='test_session')
+parser.add_argument('--raw_path', default='./raw')
+parser.add_argument('--preview_path', default='./preview')
+
+
 args = parser.parse_args()
 
 size = (args.x, args.y)
@@ -21,13 +27,18 @@ _COUNT_DOWN_EVENT = pygame.USEREVENT + 1
 _RESULT_AREA = (198, 0, size[0]-30, size[1])
 _RESULT_AREA_SIZE = (_RESULT_AREA[2]-_RESULT_AREA[0], _RESULT_AREA[3]-_RESULT_AREA[1])
 _RESULT_AREA_MID_POINT = (_RESULT_AREA[0] + _RESULT_AREA_SIZE[0] / 2, _RESULT_AREA[1] + _RESULT_AREA_SIZE[1] / 2)
+_EXT = ".jpg"
 
 
 def load_image(name, color_key=None, style=None):
     if not style:
-        fullname = os.path.join('images', name)
+        if os.path.isabs(name):
+            fullname = name
+        else:
+            fullname = os.path.join(name)
     else:
         fullname = os.path.join('images', style, name)
+    print "image: \"%s\"" % fullname
     image = pygame.image.load(fullname)
     image = image.convert()
     if color_key is not None:
@@ -37,6 +48,34 @@ def load_image(name, color_key=None, style=None):
     return image, image.get_rect()
 
 
+class PhotoPaths:
+    raw = None
+    preview = None
+
+    def __init__(self, raw, preview):
+        self.raw = raw
+        self.preview = preview
+
+
+class PhotoNameGenerator:
+    prefix = "test_session"
+    photo_count = 0
+    raw_path = "."
+    preview_path = "."
+
+    def __init__(self, prefix, raw_path, preview_path):
+        self.prefix = prefix
+        self.raw_path = raw_path
+        self.preview_path = preview_path
+
+    def next_photo_path(self):
+        self.photo_count += 1
+        photo_name = "%s-%s%s" % (self.prefix, self.photo_count, _EXT)
+        raw = os.path.abspath(os.path.join(self.raw_path, self.prefix, photo_name))
+        preview = os.path.abspath(os.path.join(self.preview_path, self.prefix, photo_name))
+        return PhotoPaths(raw, preview)
+
+
 class GameWindow:
     size = None
     screen = None
@@ -44,10 +83,12 @@ class GameWindow:
     windows = {}
     current_window = None
     last_result_image = None
+    generator = None
 
     def __init__(self, s, full_screen=False):
         self.screen, self.size = fborx.get_screen(s, full_screen)
         self.clock = pygame.time.Clock()
+        self.generator = PhotoNameGenerator(args.prefix, args.raw_path, args.preview_path)
         self.windows["welcome"] = Step('Slide1.PNG', [("menu", pygame.Rect((0, 0), size))])
         self.windows["menu"] = Step('Slide2.PNG', [("single-5",  pygame.Rect(0, 0, self.size[0]/2, self.size[1])),
                                                    ("multiple-1-5", pygame.Rect(self.size[0]/2, 0, self.size[0], self.size[1]))])
@@ -57,14 +98,14 @@ class GameWindow:
         self.windows["single-3"] = Step('Slide5 (2).PNG', None, ('single-2', 1))
         self.windows["single-2"] = Step('Slide6 (2).PNG', None, ('single-1', 1))
         self.windows["single-1"] = Step('Slide7 (2).PNG', None, ('single-0', 1))
-        self.windows["single-0"] = Step(None, command=('single-result', 'gphoto2 --capture-image-and-download --filename="A.jpg" --force-overwrite'))
+        self.windows["single-0"] = Step(None, command=('single-result', 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'))
 
         self.windows["multiple-1-5"] = Step('Slide3.PNG', None, ('multiple-1-4', 2))
         self.windows["multiple-1-4"] = Step('Slide4.PNG', None, ('multiple-1-3', 1))
         self.windows["multiple-1-3"] = Step('Slide5.PNG', None, ('multiple-1-2', 1))
         self.windows["multiple-1-2"] = Step('Slide6.PNG', None, ('multiple-1-1', 1))
         self.windows["multiple-1-1"] = Step('Slide7.PNG', None, ('multiple-1-0', 1))
-        self.windows["multiple-1-0"] = Step(None, command=('multiple-2-5', 'gphoto2 --capture-image-and-download --filename="A.jpg" --force-overwrite'))
+        self.windows["multiple-1-0"] = Step(None, command=('multiple-2-5', 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'))
 
         self.windows["multiple-2-5"] = Step('Slide8.PNG', None, ('multiple-2-4', 2))
         self.windows["multiple-2-4"] = Step('Slide9.PNG', None, ('multiple-2-3', 1))
@@ -90,10 +131,9 @@ class GameWindow:
         self.current_window = self.windows["welcome"]
 
     def transition(self, e):
-        next_window_name = self.current_window.transition(e)
+        next_window_name = self.current_window.transition(e, self)
         if next_window_name:
             self.current_window = self.windows[next_window_name]
-            self.current_window.execute(self)
         return self.current_window
 
 
@@ -130,14 +170,15 @@ class Step:
                 pygame.draw.rect(s, _RED, tran[1], 10)
             game_window.screen.blit(s, (0, 0))
         if self.result and game_window.last_result_image:
-            x_ratio = _RESULT_AREA_SIZE[0]/game_window.last_result_image[1][2]
-            y_ratio = _RESULT_AREA_SIZE[1]/game_window.last_result_image[1][3]
+            image_width = game_window.last_result_image[1].width
+            image_height = game_window.last_result_image[1].height
+            x_ratio = float(_RESULT_AREA_SIZE[0])/image_width
+            y_ratio = float(_RESULT_AREA_SIZE[1])/image_height
             if x_ratio < y_ratio:
-                transform_result_size = (int(game_window.last_result_image[1][2] * x_ratio),
-                                         int(game_window.last_result_image[1][3] * x_ratio))
+                transform_result_size = (int(image_width * x_ratio), int(image_height * x_ratio))
             else:
-                transform_result_size = (int(game_window.last_result_image[1][2] * y_ratio),
-                                         int(game_window.last_result_image[1][3] * y_ratio))
+                transform_result_size = (int(image_width * y_ratio), int(image_height * y_ratio))
+
             transform_result_start = (_RESULT_AREA_MID_POINT[0] - transform_result_size[0] / 2,
                                       _RESULT_AREA_MID_POINT[1] - transform_result_size[1] / 2)
             transformed_image = pygame.transform.scale(game_window.last_result_image[0], transform_result_size)
@@ -145,18 +186,23 @@ class Step:
         pygame.display.flip()
 
     def execute(self, game_window):
-
         if self.command and not self.command_running:
             if args.test_image:
-                game_window.last_result_image = load_image('maxresdefault.jpg', -1)
-                self.time_transition = (self.command[0], 1)
+                game_window.last_result_image = load_image('images/maxresdefault.jpg', -1)
+                return self.command[0]
             else:
                 self.command_running = True
-                subprocess.call(self.command[1].split(' '), shell=True)
+                photo_name = game_window.generator.next_photo_path().raw
+                command = string.Template(self.command[1]).safe_substitute(filename=photo_name)
+                print "executing: \"%s\"" % command
+                subprocess.call(command.split(' '))
+                game_window.last_result_image = load_image(photo_name, -1)
                 self.command_running = False
                 return self.command[0]
 
-    def transition(self, e):
+    def transition(self, e, game_window):
+        if self.command:
+            return self.execute(game_window)
         if self.click_transitions and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             for tran in self.click_transitions:
                 if tran[1].collidepoint(e.pos):
