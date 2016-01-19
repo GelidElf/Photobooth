@@ -87,14 +87,14 @@ class GameWindow:
     last_result_image = None
     generator = None
 
-    def __init__(self, s, full_screen=False):
-        self.screen, self.size = fborx.get_screen(s, full_screen)
+    def __init__(self, default_size, full_screen=False):
+        self.screen, self.size = fborx.get_screen(default_size, full_screen)
         self.clock = pygame.time.Clock()
         self.generator = PhotoNameGenerator(args.prefix, args.raw_path, args.preview_path)
-        self.windows["welcome"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), size))])
+        self.windows["welcome"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.size))])
         self.windows["menu"] = Step('Slide2.JPG', [("single-5",  pygame.Rect(0, 0, self.size[0]/2, self.size[1])),
                                                    ("multiple-1-5", pygame.Rect(self.size[0]/2, 0, self.size[0], self.size[1]))])
-        self.windows["single"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), size))])
+        self.windows["single"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.size))])
         self.windows["single-5"] = Step('Slide3.JPG', None, ('single-4', 2))
         self.windows["single-4"] = Step('Slide4.JPG', None, ('single-3', 1))
         self.windows["single-3"] = Step('Slide5.JPG', None, ('single-2', 1))
@@ -169,7 +169,7 @@ class Step:
             if x_ratio < y_ratio:
                 transform_result_size = (int(image_width * x_ratio * _RES_CX[0]), int(image_height * x_ratio * _RES_CX[1]))
             else:
-                transform_result_size = (int(image_width * y_ratio), int(image_height * y_ratio))
+                transform_result_size = (int(image_width * y_ratio * _RES_CX[0]), int(image_height * y_ratio * _RES_CX[1]))
 
             transform_result_start = (_RESULT_AREA_MID_POINT[0] - transform_result_size[0] / 2,
                                       _RESULT_AREA_MID_POINT[1] - transform_result_size[1] / 2)
