@@ -38,7 +38,7 @@ def load_image(name, color_key=None, style=None):
             fullname = os.path.join(name)
     else:
         fullname = os.path.join('images', style, name)
-    print "image: \"%s\"" % fullname
+    print ("image: \"%s\"" % fullname)
     image = pygame.image.load(fullname)
     image = image.convert()
     if color_key is not None:
@@ -89,44 +89,34 @@ class GameWindow:
         self.screen, self.size = fborx.get_screen(s, full_screen)
         self.clock = pygame.time.Clock()
         self.generator = PhotoNameGenerator(args.prefix, args.raw_path, args.preview_path)
-        self.windows["welcome"] = Step('Slide1.PNG', [("menu", pygame.Rect((0, 0), size))])
-        self.windows["menu"] = Step('Slide2.PNG', [("single-5",  pygame.Rect(0, 0, self.size[0]/2, self.size[1])),
+        self.windows["welcome"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), size))])
+        self.windows["menu"] = Step('Slide2.JPG', [("single-5",  pygame.Rect(0, 0, self.size[0]/2, self.size[1])),
                                                    ("multiple-1-5", pygame.Rect(self.size[0]/2, 0, self.size[0], self.size[1]))])
-        self.windows["single"] = Step('Slide1.PNG', [("menu", pygame.Rect((0, 0), size))])
-        self.windows["single-5"] = Step('Slide3 (2).PNG', None, ('single-4', 2))
-        self.windows["single-4"] = Step('Slide4 (2).PNG', None, ('single-3', 1))
-        self.windows["single-3"] = Step('Slide5 (2).PNG', None, ('single-2', 1))
-        self.windows["single-2"] = Step('Slide6 (2).PNG', None, ('single-1', 1))
-        self.windows["single-1"] = Step('Slide7 (2).PNG', None, ('single-0', 1))
+        self.windows["single"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), size))])
+        self.windows["single-5"] = Step('Slide3.JPG', None, ('single-4', 2))
+        self.windows["single-4"] = Step('Slide4.JPG', None, ('single-3', 1))
+        self.windows["single-3"] = Step('Slide5.JPG', None, ('single-2', 1))
+        self.windows["single-2"] = Step('Slide6.JPG', None, ('single-1', 1))
+        self.windows["single-1"] = Step('Slide7.JPG', None, ('single-0', 1))
         self.windows["single-0"] = Step(None, command=('single-result', 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'))
 
-        self.windows["multiple-1-5"] = Step('Slide3.PNG', None, ('multiple-1-4', 2))
-        self.windows["multiple-1-4"] = Step('Slide4.PNG', None, ('multiple-1-3', 1))
-        self.windows["multiple-1-3"] = Step('Slide5.PNG', None, ('multiple-1-2', 1))
-        self.windows["multiple-1-2"] = Step('Slide6.PNG', None, ('multiple-1-1', 1))
-        self.windows["multiple-1-1"] = Step('Slide7.PNG', None, ('multiple-1-0', 1))
+        self.windows["multiple-1-5"] = Step('Slide8.JPG', None, ('multiple-1-4', 2))
+        self.windows["multiple-1-4"] = Step('Slide9.JPG', None, ('multiple-1-3', 1))
+        self.windows["multiple-1-3"] = Step('Slide10.JPG', None, ('multiple-1-2', 1))
+        self.windows["multiple-1-2"] = Step('Slide11.JPG', None, ('multiple-1-1', 1))
+        self.windows["multiple-1-1"] = Step('Slide12.JPG', None, ('multiple-1-0', 1))
         self.windows["multiple-1-0"] = Step(None, command=('multiple-2-5', 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'))
 
-        self.windows["multiple-2-5"] = Step('Slide8.PNG', None, ('multiple-2-4', 2))
-        self.windows["multiple-2-4"] = Step('Slide9.PNG', None, ('multiple-2-3', 1))
-        self.windows["multiple-2-3"] = Step('Slide10.PNG', None, ('multiple-2-2', 1))
-        self.windows["multiple-2-2"] = Step('Slide11.PNG', None, ('multiple-2-1', 1))
-        self.windows["multiple-2-1"] = Step('Slide12.PNG', None, ('multiple-3-5', 1))
+        self.windows["multiple-2-5"] = Step('Slide13.JPG', None, ('multiple-2-4', 2))
+        self.windows["multiple-2-4"] = Step('Slide14.JPG', None, ('multiple-2-3', 1))
+        self.windows["multiple-2-3"] = Step('Slide15.JPG', None, ('multiple-2-2', 1))
+        self.windows["multiple-2-2"] = Step('Slide16.JPG', None, ('multiple-2-1', 1))
+        self.windows["multiple-2-1"] = Step('Slide17.JPG', None, ('multiple-2-0', 1))
+        self.windows["multiple-2-0"] = Step(None, command=('multiple-result', 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'))
 
-        self.windows["multiple-3-5"] = Step('Slide13.PNG', None, ('multiple-3-4', 2))
-        self.windows["multiple-3-4"] = Step('Slide14.PNG', None, ('multiple-3-3', 1))
-        self.windows["multiple-3-3"] = Step('Slide15.PNG', None, ('multiple-3-2', 1))
-        self.windows["multiple-3-2"] = Step('Slide16.PNG', None, ('multiple-3-1', 1))
-        self.windows["multiple-3-1"] = Step('Slide17.PNG', None, ('multiple-4-5', 1))
-
-        self.windows["multiple-4-5"] = Step('Slide18.PNG', None, ('multiple-4-4', 2))
-        self.windows["multiple-4-4"] = Step('Slide19.PNG', None, ('multiple-4-3', 1))
-        self.windows["multiple-4-3"] = Step('Slide20.PNG', None, ('multiple-4-2', 1))
-        self.windows["multiple-4-2"] = Step('Slide21.PNG', None, ('multiple-4-1', 1))
-        self.windows["multiple-4-1"] = Step('Slide22.PNG', None, ('multiple-result', 1))
         return_to_menu = pygame.Rect((0, self.size[1]-200), (200, self.size[1]))
-        self.windows["multiple-result"] = Step('Slide23.PNG', [("menu", return_to_menu)], ('welcome', 20), result=True)
-        self.windows["single-result"] = Step('Slide24.PNG', [("menu",  return_to_menu)], ('welcome', 20), result=True)
+        self.windows["multiple-result"] = Step('Slide18.JPG', [("menu", return_to_menu)], ('welcome', 20), result=True)
+        self.windows["single-result"] = Step('Slide18.JPG', [("menu",  return_to_menu)], ('welcome', 20), result=True)
 
         self.current_window = self.windows["welcome"]
 
@@ -193,7 +183,7 @@ class Step:
                 self.command_running = True
                 photo_name = game_window.generator.next_photo_path().raw
                 command = string.Template(self.command[1]).safe_substitute(filename=photo_name)
-                print "executing: \"%s\"" % command
+                print ("executing: \"%s\"" % command)
                 subprocess.call(command.split(' '))
                 game_window.last_result_image = load_image(photo_name, -1)
                 self.command_running = False
