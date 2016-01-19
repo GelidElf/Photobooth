@@ -26,10 +26,15 @@ _RED = (255, 0, 0)
 _COUNT_DOWN_EVENT = pygame.USEREVENT + 1
 _EXPECTED_RESOLUTION = (800, 480)
 _RES_CX = (float(size[0])/_EXPECTED_RESOLUTION[0], float(size[1])/_EXPECTED_RESOLUTION[1])
+print ("_RES_CX: %s,%s" % _RES_CX)
 _TARGET_RESOLUTION = (800 * _RES_CX[0], 480 * _RES_CX[1])
+print ("_TARGET_RESOLUTION: %s,%s" % _TARGET_RESOLUTION)
 _RESULT_AREA = (198, 0, _TARGET_RESOLUTION[0]-30, _TARGET_RESOLUTION[1])
+print ("_RESULT_AREA: %s,%s,%s,%s" % _RESULT_AREA)
 _RESULT_AREA_SIZE = (_RESULT_AREA[2]-_RESULT_AREA[0], _RESULT_AREA[3]-_RESULT_AREA[1])
+print ("_RESULT_AREA_SIZE: %s,%s" % _RESULT_AREA_SIZE)
 _RESULT_AREA_MID_POINT = (_RESULT_AREA[0] + _RESULT_AREA_SIZE[0] / 2, _RESULT_AREA[1] + _RESULT_AREA_SIZE[1] / 2)
+print ("_RESULT_AREA_MID_POINT: %s,%s" % _RESULT_AREA_MID_POINT)
 _EXT = ".jpg"
 
 
@@ -169,7 +174,6 @@ class Step:
             y_ratio = float(_RESULT_AREA_SIZE[1])/image_height
             print ("x_ratio: %s" % x_ratio)
             print ("y_ratio: %s" % y_ratio)
-            print ("_RES_CX: %s,%s" % (_RES_CX[0], _RES_CX[1]))
             if x_ratio < y_ratio:
                 transform_result_size = (int(image_width * x_ratio * _RES_CX[0]), int(image_height * x_ratio * _RES_CX[1]))
             else:
