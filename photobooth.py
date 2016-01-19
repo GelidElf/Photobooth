@@ -25,7 +25,7 @@ _WHITE = (255, 255, 255)
 _RED = (255, 0, 0)
 _COUNT_DOWN_EVENT = pygame.USEREVENT + 1
 _TARGET_RESOLUTION = (800, 480)
-_RES_CX = (_TARGET_RESOLUTION[0]/size[0], _TARGET_RESOLUTION[1]/size[1])
+_RES_CX = (float(size[0])/_TARGET_RESOLUTION[0], float(size[1])/_TARGET_RESOLUTION[1])
 _RESULT_AREA = (198, 0, _TARGET_RESOLUTION[0]-30, _TARGET_RESOLUTION[1])
 _RESULT_AREA_SIZE = (_RESULT_AREA[2]-_RESULT_AREA[0], _RESULT_AREA[3]-_RESULT_AREA[1])
 _RESULT_AREA_MID_POINT = (_RESULT_AREA[0] + _RESULT_AREA_SIZE[0] / 2, _RESULT_AREA[1] + _RESULT_AREA_SIZE[1] / 2)
@@ -166,11 +166,15 @@ class Step:
             image_height = game_window.last_result_image[1].height
             x_ratio = float(_RESULT_AREA_SIZE[0])/image_width
             y_ratio = float(_RESULT_AREA_SIZE[1])/image_height
+            print ("x_ratio: %s" % (x_ratio))
+            print ("y_ratio: %s" % (y_ratio))
+            print ("_RES_CX: %s,%s" % (_RES_CX[0],_RES_CX[1]))
             if x_ratio < y_ratio:
                 transform_result_size = (int(image_width * x_ratio * _RES_CX[0]), int(image_height * x_ratio * _RES_CX[1]))
             else:
                 transform_result_size = (int(image_width * y_ratio * _RES_CX[0]), int(image_height * y_ratio * _RES_CX[1]))
 
+            print ("transform_result_size: %s,%s" % (transform_result_size[0],transform_result_size[1]))
             transform_result_start = (_RESULT_AREA_MID_POINT[0] - transform_result_size[0] / 2,
                                       _RESULT_AREA_MID_POINT[1] - transform_result_size[1] / 2)
             transformed_image = pygame.transform.scale(game_window.last_result_image[0], transform_result_size)
