@@ -4,6 +4,8 @@ import fborx
 import argparse
 import subprocess
 import string
+from PIL import Image
+from PIL import ImageColor
 
 parser = argparse.ArgumentParser(description='Photobooth.')
 parser.add_argument('-f', '--full_screen', action='store_true', default=False)
@@ -58,11 +60,11 @@ def load_image(name, color_key=None, style=None):
 
 class PhotoPaths:
     raw = None
-    preview = None
+    processed = None
 
-    def __init__(self, raw, preview):
+    def __init__(self, raw, processed):
         self.raw = raw
-        self.preview = preview
+        self.processed = processed
 
 
 class PhotoNameGenerator:
@@ -80,8 +82,8 @@ class PhotoNameGenerator:
         self.photo_count += 1
         photo_name = "%s-%s%s" % (self.prefix, self.photo_count, _EXT)
         raw = os.path.abspath(os.path.join(self.raw_path, self.prefix, photo_name))
-        preview = os.path.abspath(os.path.join(self.preview_path, self.prefix, photo_name))
-        return PhotoPaths(raw, preview)
+        processed = os.path.abspath(os.path.join(self.preview_path, self.prefix, photo_name))
+        return PhotoPaths(raw, processed)
 
 
 class GameWindow:
@@ -183,21 +185,25 @@ class Step:
             transform_result_start = (_RESULT_AREA_MID_POINT[0] - transform_result_size[0] / 2,
                                       _RESULT_AREA_MID_POINT[1] - transform_result_size[1] / 2)
             transformed_image = pygame.transform.scale(game_window.last_result_image[0], transform_result_size)
+
+            pygame.draw.rect(game_window.screen, (0, 0, 0), (transform_result_start[0]-1, transform_result_start[1]-1, transform_result_size[0]+4, transform_result_size[1]+4))
+            pygame.draw.rect(game_window.screen, _WHITE, (transform_result_start[0], transform_result_start[1], transform_result_size[0], transform_result_size[1]))
             game_window.screen.blit(transformed_image, transform_result_start)
         pygame.display.flip()
 
     def execute(self, game_window):
         if self.command and not self.command_running:
             if args.test_image:
-                game_window.last_result_image = load_image('images/maxresdefault.jpg', -1)
+                processed_path = self.process_image(game_window, 'images/maxresdefault.jpg')
             else:
                 self.command_running = True
                 photo_name = game_window.generator.next_photo_path().raw
                 command = string.Template(self.command[1]).safe_substitute(filename=photo_name)
                 print ("executing: \"%s\"" % command)
                 subprocess.call(command.split(' '))
-                game_window.last_result_image = load_image(photo_name, -1)
+                processed_path = self.process_image(game_window, photo_name)
                 self.command_running = False
+            game_window.last_result_image = load_image(processed_path, -1)
             self.start_time = 0
             return self.command[0]
 
@@ -217,6 +223,19 @@ class Step:
                     self.start_time = 0
                     return self.time_transition[0]
         return None
+
+    def process_image (self, game_window, photo_name):
+        im = Image.open(photo_name)
+        print(im.format, im.size, im.mode)
+        new_im = Image.new('RGB', (im.size[0]+200, im.size[1]+200), ImageColor.getcolor('WHITE', 'RGB'))
+        new_im.paste(im, (100, 100))
+        processed_path = game_window.generator.next_photo_path().processed
+        parent_dir = os.path.dirname(processed_path)
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
+        new_im.save(processed_path)
+        return processed_path
+
 
 
 args = parser.parse_args()
