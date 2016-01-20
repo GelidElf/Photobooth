@@ -225,10 +225,14 @@ class Step:
         return None
 
     def process_image (self, game_window, photo_name):
+        banner_path = 'images/banner.jpg'
+        banner = Image.open(banner_path)
+        extra_height = banner.size[1]
         im = Image.open(photo_name)
         print(im.format, im.size, im.mode)
-        new_im = Image.new('RGB', (im.size[0]+200, im.size[1]+200), ImageColor.getcolor('WHITE', 'RGB'))
-        new_im.paste(im, (100, 100))
+        new_im = Image.new('RGBA', (im.size[0] + int(extra_height * 1.5), im.size[1]+extra_height), ImageColor.getcolor('WHITE', 'RGBA'))
+        new_im.paste(im, (0, int((new_im.size[1]-im.size[1])/2)))
+        new_im.paste(banner, (int(new_im.size[0]/2 - banner.size[0]/2), im.size[1]))
         processed_path = game_window.generator.next_photo_path().processed
         parent_dir = os.path.dirname(processed_path)
         if not os.path.exists(parent_dir):
