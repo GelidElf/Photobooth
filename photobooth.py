@@ -195,6 +195,7 @@ class Step:
         pygame.display.flip()
 
     def execute(self, game_window):
+        next_screen = None
         if self.command and not self.command_running:
             if args.test_image:
                 photo_name = PhotoPaths('images/maxresdefault.jpg', 'images/maxresdefault-processed.jpg')
@@ -207,8 +208,9 @@ class Step:
                 self.command_running = False
             processed_path = self.process_image(photo_name)
             game_window.last_result_image = load_image(processed_path, -1)
-            self.start_time = 0
-            return self.command[0]
+            next_screen = self.command[0]
+        self.start_time = 0
+        return next_screen
 
     def transition(self, e, game_window):
         if self.command:
