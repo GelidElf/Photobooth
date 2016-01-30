@@ -147,6 +147,8 @@ class Step:
     command = None
     command_running = False
     result = False
+    transform_result_size = None
+    transform_result_start = None
 
     def __init__(self, image_name, click_transitions=None, time_transition=None, event_transitions=None, command=None, result=False):
         self.start_time = 0
@@ -170,39 +172,40 @@ class Step:
                 pygame.draw.rect(s, _RED, tran[1], 10)
             game_window.screen.blit(s, (0, 0))
         if self.result and game_window.last_result_image:
-            image_width = game_window.last_result_image[1].width
-            image_height = game_window.last_result_image[1].height
-            x_ratio = float(_RESULT_AREA_SIZE[0])/image_width
-            y_ratio = float(_RESULT_AREA_SIZE[1])/image_height
-            print ("x_ratio: %s" % x_ratio)
-            print ("y_ratio: %s" % y_ratio)
-            if x_ratio < y_ratio:
-                transform_result_size = (int(image_width * x_ratio * _RES_CX[0]), int(image_height * x_ratio * _RES_CX[1]))
-            else:
-                transform_result_size = (int(image_width * y_ratio * _RES_CX[0]), int(image_height * y_ratio * _RES_CX[1]))
 
-            print ("transform_result_size: %s,%s" % (transform_result_size[0], transform_result_size[1]))
-            transform_result_start = (_RESULT_AREA_MID_POINT[0] - transform_result_size[0] / 2,
-                                      _RESULT_AREA_MID_POINT[1] - transform_result_size[1] / 2)
-            transformed_image = pygame.transform.scale(game_window.last_result_image[0], transform_result_size)
+            if not self.transform_result_start and not self.transform_result_size:
+                image_width = game_window.last_result_image[1].width
+                image_height = game_window.last_result_image[1].height
+                x_ratio = float(_RESULT_AREA_SIZE[0])/image_width
+                y_ratio = float(_RESULT_AREA_SIZE[1])/image_height
+                print ("x_ratio: %s" % x_ratio)
+                print ("y_ratio: %s" % y_ratio)
+                if x_ratio < y_ratio:
+                    self.transform_result_size = (int(image_width * x_ratio * _RES_CX[0]), int(image_height * x_ratio * _RES_CX[1]))
+                else:
+                    self.transform_result_size = (int(image_width * y_ratio * _RES_CX[0]), int(image_height * y_ratio * _RES_CX[1]))
 
-            pygame.draw.rect(game_window.screen, (0, 0, 0), (transform_result_start[0]-1, transform_result_start[1]-1, transform_result_size[0]+4, transform_result_size[1]+4))
-            pygame.draw.rect(game_window.screen, _WHITE, (transform_result_start[0], transform_result_start[1], transform_result_size[0], transform_result_size[1]))
-            game_window.screen.blit(transformed_image, transform_result_start)
+                print ("transform_result_size: %s,%s" % (self.transform_result_size[0], self.transform_result_size[1]))
+                self.transform_result_start = (_RESULT_AREA_MID_POINT[0] - self.transform_result_size[0] / 2,
+                                          _RESULT_AREA_MID_POINT[1] - self.transform_result_size[1] / 2)
+            transformed_image = pygame.transform.scale(game_window.last_result_image[0], self.transform_result_size)
+            pygame.draw.rect(game_window.screen, (0, 0, 0), (self.transform_result_start[0]-1, self.transform_result_start[1]-1, self.transform_result_size[0]+4, self.transform_result_size[1]+4))
+            pygame.draw.rect(game_window.screen, _WHITE, (self.transform_result_start[0], self.transform_result_start[1], self.transform_result_size[0], self.transform_result_size[1]))
+            game_window.screen.blit(transformed_image, self.transform_result_start)
         pygame.display.flip()
 
     def execute(self, game_window):
         if self.command and not self.command_running:
             if args.test_image:
-                processed_path = self.process_image(game_window, 'images/maxresdefault.jpg')
+                photo_name = PhotoPaths('images/maxresdefault.jpg', 'images/maxresdefault-processed.jpg')
             else:
                 self.command_running = True
-                photo_name = game_window.generator.next_photo_path().raw
-                command = string.Template(self.command[1]).safe_substitute(filename=photo_name)
+                photo_name = game_window.generator.next_photo_path()
+                command = string.Template(self.command[1]).safe_substitute(filename=photo_name.raw)
                 print ("executing: \"%s\"" % command)
                 subprocess.call(command.split(' '))
-                processed_path = self.process_image(game_window, photo_name)
                 self.command_running = False
+            processed_path = self.process_image(photo_name)
             game_window.last_result_image = load_image(processed_path, -1)
             self.start_time = 0
             return self.command[0]
@@ -224,16 +227,22 @@ class Step:
                     return self.time_transition[0]
         return None
 
-    def process_image (self, game_window, photo_name):
+    def process_image (self, image):
         banner_path = 'images/banner.jpg'
         banner = Image.open(banner_path)
-        extra_height = banner.size[1]
-        im = Image.open(photo_name)
-        print(im.format, im.size, im.mode)
-        new_im = Image.new('RGBA', (im.size[0] + int(extra_height * 1.5), im.size[1]+extra_height), ImageColor.getcolor('WHITE', 'RGBA'))
-        new_im.paste(im, (0, int((new_im.size[1]-im.size[1])/2)))
-        new_im.paste(banner, (int(new_im.size[0]/2 - banner.size[0]/2), im.size[1]))
-        processed_path = game_window.generator.next_photo_path().processed
+        print("banner", banner.format, banner.size, banner.mode)
+        im = Image.open(image.raw)
+        print("image", im.format, im.size, im.mode)
+
+        new_height = int((4 * (im.size[1] + 250)) - (2 * im.size[0]))
+        new_width = int(new_height * 1.5)
+        border = int((new_width-im.size[0])/2)
+        print("new", new_width, new_height, border)
+
+        new_im = Image.new('RGBA', (new_width, new_height), ImageColor.getcolor('WHITE', 'RGBA'))
+        new_im.paste(im, (border, border))
+        new_im.paste(banner, (int(new_width/2 - banner.size[0]/2), im.size[1]+border))
+        processed_path = image.processed
         parent_dir = os.path.dirname(processed_path)
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
