@@ -72,18 +72,30 @@ class PhotoNameGenerator:
     photo_count = 0
     raw_path = "."
     preview_path = "."
+    last = None
+    raw_queue = None
 
     def __init__(self, prefix, raw_path, preview_path):
         self.prefix = prefix
         self.raw_path = raw_path
         self.preview_path = preview_path
+        self.raw_queue = []
 
-    def next_photo_path(self):
-        self.photo_count += 1
-        photo_name = "%s-%s%s" % (self.prefix, self.photo_count, _EXT)
-        raw = os.path.abspath(os.path.join(self.raw_path, self.prefix, photo_name))
-        processed = os.path.abspath(os.path.join(self.preview_path, self.prefix, photo_name))
-        return PhotoPaths(raw, processed)
+    def create(self, number_photos=1):
+        self.raw_queue = []
+        if args.test_image:
+            for _ in range(number_photos):
+                self.raw_queue.append('images/maxresdefault.jpg')
+            processed = 'images/maxresdefault-processed%s.jpg' % number_photos
+        else:
+            for _ in range(number_photos):
+                self.photo_count += 1
+                photo_name = "%s-%s%s" % (self.prefix, self.photo_count, _EXT)
+                self.raw_queue.append(os.path.abspath(os.path.join(self.raw_path, self.prefix, photo_name)))
+            processed = os.path.abspath(os.path.join(self.preview_path, self.prefix, photo_name))
+        self.last = PhotoPaths(list(self.raw_queue), processed)
+        print("created ", number_photos, " exist", len(self.raw_queue))
+
 
 
 class GameWindow:
@@ -92,16 +104,16 @@ class GameWindow:
     clock = None
     windows = {}
     current_window = None
-    last_result_image = None
     generator = None
+    last_result_image = None
 
     def __init__(self, default_size, full_screen=False):
         self.screen, self.size = fborx.get_screen(default_size, full_screen)
         self.clock = pygame.time.Clock()
         self.generator = PhotoNameGenerator(args.prefix, args.raw_path, args.preview_path)
         self.windows["welcome"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.size))])
-        self.windows["menu"] = Step('Slide2.JPG', [("single-5",  pygame.Rect(0, 0, self.size[0]/2, self.size[1])),
-                                                   ("multiple-1-5", pygame.Rect(self.size[0]/2, 0, self.size[0], self.size[1]))])
+        self.windows["menu"] = Step('Slide2.JPG', [("single-5",  pygame.Rect(0, 0, self.size[0]/2, self.size[1]), 1),
+                                                   ("multiple-1-5", pygame.Rect(self.size[0]/2, 0, self.size[0], self.size[1]), 2)])
         self.windows["single"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.size))])
         self.windows["single-5"] = Step('Slide3.JPG', None, ('single-4', 2))
         self.windows["single-4"] = Step('Slide4.JPG', None, ('single-3', 1))
@@ -171,8 +183,11 @@ class Step:
             for tran in self.click_transitions:
                 pygame.draw.rect(s, _RED, tran[1], 10)
             game_window.screen.blit(s, (0, 0))
-        if self.result and game_window.last_result_image:
+        if self.result:
 
+            if not game_window.last_result_image:
+                processed_path = self.process_image(game_window.generator.last)
+                game_window.last_result_image = load_image(processed_path, -1)
             if not self.transform_result_start and not self.transform_result_size:
                 image_width = game_window.last_result_image[1].width
                 image_height = game_window.last_result_image[1].height
@@ -197,17 +212,13 @@ class Step:
     def execute(self, game_window):
         next_screen = None
         if self.command and not self.command_running:
-            if args.test_image:
-                photo_name = PhotoPaths('images/maxresdefault.jpg', 'images/maxresdefault-processed.jpg')
-            else:
-                self.command_running = True
-                photo_name = game_window.generator.next_photo_path()
-                command = string.Template(self.command[1]).safe_substitute(filename=photo_name.raw)
+            self.command_running = True
+            if not args.test_image:
+                photo_name = game_window.generator.raw_queue.pop()
+                command = string.Template(self.command[1]).safe_substitute(filename=photo_name)
                 print ("executing: \"%s\"" % command)
                 subprocess.call(command.split(' '))
-                self.command_running = False
-            processed_path = self.process_image(photo_name)
-            game_window.last_result_image = load_image(processed_path, -1)
+            self.command_running = False
             next_screen = self.command[0]
         self.start_time = 0
         return next_screen
@@ -220,6 +231,9 @@ class Step:
             for tran in self.click_transitions:
                 if tran[1].collidepoint(e.pos):
                     self.start_time = 0
+                    if len(tran) > 2:
+                        game_window.last_result_image = None
+                        game_window.generator.create(tran[2])
                     return tran[0]
         if self.time_transition:
             if e.type == _COUNT_DOWN_EVENT:
@@ -229,22 +243,64 @@ class Step:
                     return self.time_transition[0]
         return None
 
-    def process_image (self, image):
+    def process_image(self, last):
+        items = len(last.raw)
+        if items == 0:
+            print ("ERROR")
+            return None
+        elif items == 1:
+            return self.process_single_image(last)
+        elif items == 2:
+            return self.process_two_images(last)
+
+
+    def process_single_image (self, images):
         banner_path = 'images/banner.jpg'
         banner = Image.open(banner_path)
         print("banner", banner.format, banner.size, banner.mode)
-        im = Image.open(image.raw)
+        im = Image.open(images.raw[0])
         print("image", im.format, im.size, im.mode)
 
-        new_height = int((4 * (im.size[1] + 250)) - (2 * im.size[0]))
+        new_height = int(im.size[1] * 1.25)
         new_width = int(new_height * 1.5)
-        border = int((new_width-im.size[0])/2)
-        print("new", new_width, new_height, border)
+        top_border = int(new_height/20)
+        print("new", new_width, new_height, top_border)
 
         new_im = Image.new('RGBA', (new_width, new_height), ImageColor.getcolor('WHITE', 'RGBA'))
-        new_im.paste(im, (border, border))
-        new_im.paste(banner, (int(new_width/2 - banner.size[0]/2), im.size[1]+border))
-        processed_path = image.processed
+        new_im.paste(im, (int(new_width/2 - im.size[0]/2), top_border))
+        new_im.paste(banner, (int(new_width/2 - banner.size[0]/2), new_height-banner.size[1]))
+        processed_path = images.processed
+        parent_dir = os.path.dirname(processed_path)
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
+        new_im.save(processed_path)
+        return processed_path
+
+
+    def process_two_images (self, images):
+        banner_path = 'images/banner.jpg'
+        banner = Image.open(banner_path)
+        print("banner", banner.format, banner.size, banner.mode)
+        im1 = Image.open(images.raw[0])
+        resize = (im1.size[0]*0.6, im1.size[1]*0.6)
+        im1.thumbnail(resize, Image.ANTIALIAS)
+
+        new_width = int(im1.size[0] * 10/9)
+        new_height = int(new_width * 1.5)
+
+        print("image", im1.format, im1.size, im1.mode)
+        im2 = Image.open(images.raw[1])
+        im2.thumbnail(resize, Image.ANTIALIAS)
+        print("image", im2.format, im2.size, im2.mode)
+
+        top_border = int(new_height/20)
+        print("new", new_width, new_height, top_border)
+
+        new_im = Image.new('RGBA', (new_width, new_height), ImageColor.getcolor('WHITE', 'RGBA'))
+        new_im.paste(im1, (int(new_width/2 - im1.size[0]/2), top_border))
+        new_im.paste(im2, (int(new_width/2 - im2.size[0]/2), new_height-im2.size[1]-banner.size[1]))
+        new_im.paste(banner, (int(new_width/2 - banner.size[0]/2), new_height-banner.size[1]))
+        processed_path = images.processed
         parent_dir = os.path.dirname(processed_path)
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
