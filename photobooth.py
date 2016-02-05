@@ -1,11 +1,10 @@
 import os
 import pygame
 import fborx
+from processor_pillow import Processor
 import argparse
 import subprocess
 import string
-from PIL import Image
-from PIL import ImageColor
 
 parser = argparse.ArgumentParser(description='Photobooth.')
 parser.add_argument('-f', '--full_screen', action='store_true', default=False)
@@ -106,8 +105,10 @@ class GameWindow:
     current_screen = None
     generator = None
     last_result_image = None
+    processor = None
 
     def __init__(self, default_size, full_screen=False):
+        self.processor = Processor()
         self.screen, self.size = fborx.get_screen(default_size, full_screen)
         self.clock = pygame.time.Clock()
         self.generator = PhotoNameGenerator(args.prefix, args.raw_path, args.preview_path)
@@ -149,6 +150,9 @@ class GameWindow:
         if next_window_name:
             self.current_step = self.windows[next_window_name]
             self.paint(self.current_step.screen(self.current_screen, self.generator.last))
+            if self.generator.last and self.current_step.result:
+                self.processor.process_image(self.generator.last)
+                self.generator.last = None
         return self.current_step
 
     def paint(self, screen):

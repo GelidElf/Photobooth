@@ -1,3 +1,7 @@
+import os
+from PIL import Image
+from PIL import ImageColor
+
 
 class Processor:
 
