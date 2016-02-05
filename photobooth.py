@@ -97,13 +97,13 @@ class PhotoNameGenerator:
         print("created ", number_photos, " exist", len(self.raw_queue))
 
 
-
 class GameWindow:
     size = None
     screen = None
     clock = None
     windows = {}
-    current_window = None
+    current_step = None
+    current_screen = None
     generator = None
     last_result_image = None
 
@@ -140,13 +140,20 @@ class GameWindow:
         self.windows["multiple-result"] = Step('Slide18.JPG', [("menu", return_to_menu)], ('welcome', 20), result=True)
         self.windows["single-result"] = Step('Slide18.JPG', [("menu",  return_to_menu)], ('welcome', 20), result=True)
 
-        self.current_window = self.windows["welcome"]
+        self.current_step = self.windows["welcome"]
+        self.current_screen = pygame.Surface(self.size)
+        self.paint(self.current_step.screen(self.current_screen, self.generator.last))
 
     def transition(self, e):
-        next_window_name = self.current_window.transition(e, self)
+        next_window_name = self.current_step.transition(e, self)
         if next_window_name:
-            self.current_window = self.windows[next_window_name]
-        return self.current_window
+            self.current_step = self.windows[next_window_name]
+            self.paint(self.current_step.screen(self.current_screen, self.generator.last))
+        return self.current_step
+
+    def paint(self, screen):
+        self.screen.blit(screen, (0, 0))
+        pygame.display.flip()
 
 
 class Step:
@@ -172,27 +179,26 @@ class Step:
         self.command = command
         self.result = result
 
-    def paint(self, game_window):
-        game_window.screen.fill(_WHITE)
+    def screen(self, surface, last):
+        surface.fill(_WHITE)
         if self.image:
-            game_window.screen.blit(pygame.transform.scale(self.image, size), (0, 0))
+            surface.blit(pygame.transform.scale(self.image, size), (0, 0))
         if args.test_click_area and self.click_transitions:
-            s = pygame.Surface(game_window.size)
+            s = pygame.Surface(surface.size)
             s.set_alpha(128)
             s.fill(_WHITE)
             for tran in self.click_transitions:
                 pygame.draw.rect(s, _RED, tran[1], 10)
-            game_window.screen.blit(s, (0, 0))
+            surface.blit(s, (0, 0))
         if self.result:
-
-            if not game_window.last_result_image:
-                processed_path = self.process_image(game_window.generator.last)
-                game_window.last_result_image = load_image(processed_path, -1)
+            images = []
+            for image_path in last.raw:
+                images.append(load_image(image_path, -1))
             if not self.transform_result_start and not self.transform_result_size:
-                image_width = game_window.last_result_image[1].width
-                image_height = game_window.last_result_image[1].height
+                image_width = images[0][1].width
+                image_height = images[0][1].height
                 x_ratio = float(_RESULT_AREA_SIZE[0])/image_width
-                y_ratio = float(_RESULT_AREA_SIZE[1])/image_height
+                y_ratio = float(_RESULT_AREA_SIZE[1])/(image_height*len(last.raw))
                 print ("x_ratio: %s" % x_ratio)
                 print ("y_ratio: %s" % y_ratio)
                 if x_ratio < y_ratio:
@@ -201,13 +207,13 @@ class Step:
                     self.transform_result_size = (int(image_width * y_ratio * _RES_CX[0]), int(image_height * y_ratio * _RES_CX[1]))
 
                 print ("transform_result_size: %s,%s" % (self.transform_result_size[0], self.transform_result_size[1]))
+
+            for index, image in enumerate(images):
                 self.transform_result_start = (_RESULT_AREA_MID_POINT[0] - self.transform_result_size[0] / 2,
-                                          _RESULT_AREA_MID_POINT[1] - self.transform_result_size[1] / 2)
-            transformed_image = pygame.transform.scale(game_window.last_result_image[0], self.transform_result_size)
-            pygame.draw.rect(game_window.screen, (0, 0, 0), (self.transform_result_start[0]-1, self.transform_result_start[1]-1, self.transform_result_size[0]+4, self.transform_result_size[1]+4))
-            pygame.draw.rect(game_window.screen, _WHITE, (self.transform_result_start[0], self.transform_result_start[1], self.transform_result_size[0], self.transform_result_size[1]))
-            game_window.screen.blit(transformed_image, self.transform_result_start)
-        pygame.display.flip()
+                                              _RESULT_AREA_MID_POINT[1] - (self.transform_result_size[1]*(len(images)) / 2) + self.transform_result_size[1]*index)
+                transformed_image = pygame.transform.scale(image[0], self.transform_result_size)
+                surface.blit(transformed_image, self.transform_result_start)
+        return surface
 
     def execute(self, game_window):
         next_screen = None
@@ -243,79 +249,12 @@ class Step:
                     return self.time_transition[0]
         return None
 
-    def process_image(self, last):
-        items = len(last.raw)
-        if items == 0:
-            print ("ERROR")
-            return None
-        elif items == 1:
-            return self.process_single_image(last)
-        elif items == 2:
-            return self.process_two_images(last)
-
-
-    def process_single_image (self, images):
-        banner_path = 'images/banner.jpg'
-        banner = Image.open(banner_path)
-        print("banner", banner.format, banner.size, banner.mode)
-        im = Image.open(images.raw[0])
-        print("image", im.format, im.size, im.mode)
-
-        new_height = int(im.size[1] * 1.25)
-        new_width = int(new_height * 1.5)
-        top_border = int(new_height/20)
-        print("new", new_width, new_height, top_border)
-
-        new_im = Image.new('RGBA', (new_width, new_height), ImageColor.getcolor('WHITE', 'RGBA'))
-        new_im.paste(im, (int(new_width/2 - im.size[0]/2), top_border))
-        new_im.paste(banner, (int(new_width/2 - banner.size[0]/2), new_height-banner.size[1]))
-        processed_path = images.processed
-        parent_dir = os.path.dirname(processed_path)
-        if not os.path.exists(parent_dir):
-            os.makedirs(parent_dir)
-        new_im.save(processed_path)
-        return processed_path
-
-
-    def process_two_images (self, images):
-        banner_path = 'images/banner.jpg'
-        banner = Image.open(banner_path)
-        print("banner", banner.format, banner.size, banner.mode)
-        im1 = Image.open(images.raw[0])
-        resize = (im1.size[0]*0.6, im1.size[1]*0.6)
-        im1.thumbnail(resize, Image.ANTIALIAS)
-
-        new_width = int(im1.size[0] * 10/9)
-        new_height = int(new_width * 1.5)
-
-        print("image", im1.format, im1.size, im1.mode)
-        im2 = Image.open(images.raw[1])
-        im2.thumbnail(resize, Image.ANTIALIAS)
-        print("image", im2.format, im2.size, im2.mode)
-
-        top_border = int(new_height/20)
-        print("new", new_width, new_height, top_border)
-
-        new_im = Image.new('RGBA', (new_width, new_height), ImageColor.getcolor('WHITE', 'RGBA'))
-        new_im.paste(im1, (int(new_width/2 - im1.size[0]/2), top_border))
-        new_im.paste(im2, (int(new_width/2 - im2.size[0]/2), new_height-im2.size[1]-banner.size[1]))
-        new_im.paste(banner, (int(new_width/2 - banner.size[0]/2), new_height-banner.size[1]))
-        processed_path = images.processed
-        parent_dir = os.path.dirname(processed_path)
-        if not os.path.exists(parent_dir):
-            os.makedirs(parent_dir)
-        new_im.save(processed_path)
-        return processed_path
-
-
-
 args = parser.parse_args()
 gw = GameWindow(size, args.full_screen)
 pygame.time.set_timer(_COUNT_DOWN_EVENT, 1000)
 running = True
 while running:
 
-    gw.current_window.paint(gw)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
