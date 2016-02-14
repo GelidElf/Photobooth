@@ -30,12 +30,6 @@ _RES_CX = (float(size[0])/_EXPECTED_RESOLUTION[0], float(size[1])/_EXPECTED_RESO
 print ("_RES_CX: %s,%s" % _RES_CX)
 _TARGET_RESOLUTION = (800 * _RES_CX[0], 480 * _RES_CX[1])
 print ("_TARGET_RESOLUTION: %s,%s" % _TARGET_RESOLUTION)
-_RESULT_AREA = (198, 0, _TARGET_RESOLUTION[0]-30, _TARGET_RESOLUTION[1])
-print ("_RESULT_AREA: %s,%s,%s,%s" % _RESULT_AREA)
-_RESULT_AREA_SIZE = (_RESULT_AREA[2]-_RESULT_AREA[0], _RESULT_AREA[3]-_RESULT_AREA[1])
-print ("_RESULT_AREA_SIZE: %s,%s" % _RESULT_AREA_SIZE)
-_RESULT_AREA_MID_POINT = (_RESULT_AREA[0] + _RESULT_AREA_SIZE[0] / 2, _RESULT_AREA[1] + _RESULT_AREA_SIZE[1] / 2)
-print ("_RESULT_AREA_MID_POINT: %s,%s" % _RESULT_AREA_MID_POINT)
 _EXT = ".jpg"
 
 
@@ -160,6 +154,31 @@ class GameWindow:
         pygame.display.flip()
 
 
+class ResultArea:
+    area = None
+    size = None
+    mid_point = None
+
+    def __init__(self, area):
+        self.area = area
+        print ("_RESULT_AREA: %s,%s,%s,%s" % self.area)
+        self.size = (self.area[2]-self.area[0], self.area[3]-self.area[1])
+        print ("_RESULT_AREA_SIZE: %s,%s" % self.size)
+        self.mid_point = (self.area[0] + self.size[0] / 2, self.area[1] + self.size[1] / 2)
+        print ("_RESULT_AREA_MID_POINT: %s,%s" % self.mid_point)
+
+    def size_for_screen(self, images):
+        image_width = images[0][1].width
+        image_height = images[0][1].height
+        x_ratio = float(self.size[0]) / image_width
+        y_ratio = float(self.size[1]) / (image_height * len(images))
+        print("x_ratio: %s" % x_ratio)
+        print("y_ratio: %s" % y_ratio)
+        if x_ratio < y_ratio:
+            return int(image_width * x_ratio * _RES_CX[0]), int(image_height * x_ratio * _RES_CX[1])
+        else:
+            return int(image_width * y_ratio * _RES_CX[0]), int(image_height * y_ratio * _RES_CX[1])
+
 class Step:
 
     start_time = 0
@@ -169,7 +188,7 @@ class Step:
     event_transitions = []
     command = None
     command_running = False
-    result = False
+    result_area = False
     transform_result_size = None
     transform_result_start = None
 
@@ -181,7 +200,8 @@ class Step:
         self.time_transition = time_transition
         self.event_transitions = event_transitions
         self.command = command
-        self.result = result
+        if result:
+            self.result_area = ResultArea()
 
     def screen(self, surface, last):
         surface.fill(_WHITE)
@@ -198,20 +218,9 @@ class Step:
             images = []
             for image_path in last.raw:
                 images.append(load_image(image_path, -1))
-            if not self.transform_result_start and not self.transform_result_size:
-                image_width = images[0][1].width
-                image_height = images[0][1].height
-                x_ratio = float(_RESULT_AREA_SIZE[0])/image_width
-                y_ratio = float(_RESULT_AREA_SIZE[1])/(image_height*len(last.raw))
-                print ("x_ratio: %s" % x_ratio)
-                print ("y_ratio: %s" % y_ratio)
-                if x_ratio < y_ratio:
-                    self.transform_result_size = (int(image_width * x_ratio * _RES_CX[0]), int(image_height * x_ratio * _RES_CX[1]))
-                else:
-                    self.transform_result_size = (int(image_width * y_ratio * _RES_CX[0]), int(image_height * y_ratio * _RES_CX[1]))
-
-                print ("transform_result_size: %s,%s" % (self.transform_result_size[0], self.transform_result_size[1]))
-
+            if not self.transform_result_size:
+                not self.transform_result_size = self.result_area.size_for_screen(images, _RESULT_AREA_SIZE)
+                print("transform_result_size: %s,%s" % (self.transform_result_size[0], self.transform_result_size[1]))
             for index, image in enumerate(images):
                 self.transform_result_start = (_RESULT_AREA_MID_POINT[0] - self.transform_result_size[0] / 2,
                                               _RESULT_AREA_MID_POINT[1] - (self.transform_result_size[1]*(len(images)) / 2) + self.transform_result_size[1]*index)
