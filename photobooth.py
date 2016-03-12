@@ -20,7 +20,6 @@ parser.add_argument('--prefix', default='test_session')
 parser.add_argument('--raw_path', default='./raw')
 parser.add_argument('--preview_path', default='./preview')
 
-
 args = parser.parse_args()
 
 size = (args.x, args.y)
@@ -28,10 +27,10 @@ _WHITE = (255, 255, 255)
 _RED = (255, 0, 0)
 _COUNT_DOWN_EVENT = pygame.USEREVENT + 1
 _EXPECTED_RESOLUTION = (800, 480)
-_RES_CX = (float(size[0])/_EXPECTED_RESOLUTION[0], float(size[1])/_EXPECTED_RESOLUTION[1])
-print ("_RES_CX: %s,%s" % _RES_CX)
+_RES_CX = (float(size[0]) / _EXPECTED_RESOLUTION[0], float(size[1]) / _EXPECTED_RESOLUTION[1])
+print("_RES_CX: %s,%s" % _RES_CX)
 _TARGET_RESOLUTION = (800 * _RES_CX[0], 480 * _RES_CX[1])
-print ("_TARGET_RESOLUTION: %s,%s" % _TARGET_RESOLUTION)
+print("_TARGET_RESOLUTION: %s,%s" % _TARGET_RESOLUTION)
 _EXT = ".jpg"
 
 
@@ -43,7 +42,7 @@ def load_image(name, color_key=None, style=None):
             fullname = os.path.join(name)
     else:
         fullname = os.path.join('images', style, name)
-    print ("image: \"%s\"" % fullname)
+    print("image: \"%s\"" % fullname)
     image = pygame.image.load(fullname)
     image = image.convert()
     if color_key is not None:
@@ -109,7 +108,8 @@ class GameWindow:
         self.clock = pygame.time.Clock()
         self.generator = PhotoNameGenerator(args.prefix, args.raw_path, args.preview_path)
         self.windows["welcome"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.size))])
-        self.windows["menu"] = Step('Slide2.JPG', [("single-5",  pygame.Rect(self.size[0]*0.25, 0, self.size[0]*0.5, self.size[1]), 1)])
+        self.windows["menu"] = Step('Slide2.JPG', [
+            ("single-5", pygame.Rect(self.size[0] * 0.25, 0, self.size[0] * 0.5, self.size[1]), 1)])
         self.windows["single"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.size))])
         self.windows["single-5"] = Step('Slide3.JPG', None, ('single-4', 2))
         self.windows["single-4"] = Step('Slide4.JPG', None, ('single-3', 1))
@@ -118,8 +118,8 @@ class GameWindow:
         self.windows["single-1"] = Step('Slide7.JPG', None, ('single-0', 1))
         self.windows["single-0"] = Step(None, command=('single-result', gphoto_command))
 
-        return_to_menu = pygame.Rect((0, self.size[1]-200), (200, self.size[1]))
-        self.windows["single-result"] = Step('Slide8.JPG', [("menu",  return_to_menu)], ('welcome', 20), result=True)
+        return_to_menu = pygame.Rect((0, self.size[1] - 200), (200, self.size[1]))
+        self.windows["single-result"] = Step('Slide8.JPG', [("menu", return_to_menu)], ('welcome', 20), result=True)
 
         self.current_step = self.windows["welcome"]
         self.screen_surface = pygame.Surface(self.size)
@@ -147,11 +147,11 @@ class ResultArea:
 
     def __init__(self, area):
         self.area = area
-        print ("_RESULT_AREA: %s,%s,%s,%s" % self.area)
-        self.size = (self.area[2]-self.area[0], self.area[3]-self.area[1])
-        print ("_RESULT_AREA_SIZE: %s,%s" % self.size)
+        print("_RESULT_AREA: %s,%s,%s,%s" % self.area)
+        self.size = (self.area[2] - self.area[0], self.area[3] - self.area[1])
+        print("_RESULT_AREA_SIZE: %s,%s" % self.size)
         self.mid_point = (self.area[0] + self.size[0] / 2, self.area[1] + self.size[1] / 2)
-        print ("_RESULT_AREA_MID_POINT: %s,%s" % self.mid_point)
+        print("_RESULT_AREA_MID_POINT: %s,%s" % self.mid_point)
 
     def size_for_screen(self, images):
         image_width = images[0][1].width
@@ -167,7 +167,6 @@ class ResultArea:
 
 
 class Step:
-
     start_time = 0
     image = None
     click_transitions = []
@@ -178,7 +177,8 @@ class Step:
     result_area = False
     transform_result_size = None
 
-    def __init__(self, image_name, click_transitions=None, time_transition=None, event_transitions=None, command=None, result=False):
+    def __init__(self, image_name, click_transitions=None, time_transition=None, event_transitions=None, command=None,
+                 result=False):
         self.start_time = 0
         if image_name:
             self.image, singleRect = load_image(image_name, -1, args.style)
@@ -187,7 +187,7 @@ class Step:
         self.event_transitions = event_transitions
         self.command = command
         if result:
-            self.result_area = ResultArea((198, 0, _TARGET_RESOLUTION[0]-30, _TARGET_RESOLUTION[1]))
+            self.result_area = ResultArea((198, 0, _TARGET_RESOLUTION[0] - 30, _TARGET_RESOLUTION[1]))
 
     def screen(self, surface, last):
         surface.fill(_WHITE)
@@ -200,7 +200,7 @@ class Step:
             for tran in self.click_transitions:
                 pygame.draw.rect(s, _RED, tran[1], 10)
             surface.blit(s, (0, 0))
-        if self.transform_result_size:
+        if self.is_result_screen():
             images = []
             for image_path in last.raw:
                 images.append(load_image(image_path, -1))
@@ -208,15 +208,17 @@ class Step:
                 self.transform_result_size = self.result_area.size_for_screen(images)
                 print("transform_result_size: %s,%s" % (self.transform_result_size[0], self.transform_result_size[1]))
             for index, image in enumerate(images):
-
                 transformed_image = pygame.transform.scale(image[0], self.transform_result_size)
                 surface.blit(transformed_image, self.start_coords(images, index))
         return surface
 
+    def is_result_screen(self):
+        return self.result_area
+
     def start_coords(self, images, index):
         return (self.result_area.mid_point[0] - self.transform_result_size[0] / 2, self.result_area.mid_point[1] - (
-                                       self.transform_result_size[1] * (len(images)) / 2) + self.transform_result_size[
-                                           1] * index)
+            self.transform_result_size[1] * (len(images)) / 2) + self.transform_result_size[
+                    1] * index)
 
     def execute(self, game_window):
         next_screen = None
@@ -225,7 +227,7 @@ class Step:
             if not args.test_image:
                 photo_name = game_window.generator.raw_queue.pop()
                 command = string.Template(self.command[1]).safe_substitute(filename=photo_name)
-                print ("executing: \"%s\"" % command)
+                print("executing: \"%s\"" % command)
                 subprocess.call(command.split(' '))
             self.command_running = False
             next_screen = self.command[0]
@@ -251,6 +253,7 @@ class Step:
                     self.start_time = 0
                     return self.time_transition[0]
         return None
+
 
 args = parser.parse_args()
 gw = GameWindow(size, args.full_screen)
