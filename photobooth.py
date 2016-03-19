@@ -52,7 +52,7 @@ def load_image(name, color_key=None, style=None):
     return image, image.get_rect()
 
 
-class PhotoPaths:
+class PhotoBundle:
     raw = None
     processed = None
 
@@ -60,13 +60,16 @@ class PhotoPaths:
         self.raw = raw
         self.processed = processed
 
+    def __str__(self):
+        return "[%s:%s" % (self.processed,self.raw)
+
 
 class PhotoNameGenerator:
     prefix = "test_session"
     photo_count = 0
     raw_path = "."
     preview_path = "."
-    last = None
+    last_photo_bundle = None
     raw_queue = None
 
     def __init__(self, prefix, raw_path, preview_path):
@@ -87,8 +90,8 @@ class PhotoNameGenerator:
                 photo_name = "%s-%s%s" % (self.prefix, self.photo_count, _EXT)
                 self.raw_queue.append(os.path.abspath(os.path.join(self.raw_path, self.prefix, photo_name)))
             processed = os.path.abspath(os.path.join(self.preview_path, self.prefix, photo_name))
-        self.last = PhotoPaths(list(self.raw_queue), processed)
-        print("created ", number_photos, " exist", len(self.raw_queue))
+        self.last_photo_bundle = PhotoBundle(list(self.raw_queue), processed)
+        print("created %s" % self.last_photo_bundle)
 
 
 class GameWindow:
@@ -123,16 +126,16 @@ class GameWindow:
 
         self.current_step = self.windows["welcome"]
         self.screen_surface = pygame.Surface(self.size)
-        self.paint(self.current_step.screen(self.screen_surface, self.generator.last))
+        self.paint(self.current_step.screen(self.screen_surface, self.generator.last_photo_bundle))
 
     def transition(self, e):
         next_window_name = self.current_step.transition(e, self)
         if next_window_name:
             self.current_step = self.windows[next_window_name]
-            self.paint(self.current_step.screen(self.screen_surface, self.generator.last))
-            if self.generator.last and self.current_step.transform_result_size:
-                self.processor.process_image(self.generator.last)
-                self.generator.last = None
+            self.paint(self.current_step.screen(self.screen_surface, self.generator.last_photo_bundle))
+            if self.generator.last_photo_bundle and self.current_step.transform_result_size:
+                self.processor.dual_single_image(self.generator.last_photo_bundle).save(self.generator.last_photo_bundle.processed)
+                self.generator.last_photo_bundle = None
         return self.current_step
 
     def paint(self, screen):
@@ -158,8 +161,7 @@ class ResultArea:
         image_height = images[0][1].height
         x_ratio = float(self.size[0]) / image_width
         y_ratio = float(self.size[1]) / (image_height * len(images))
-        print("x_ratio: %s" % x_ratio)
-        print("y_ratio: %s" % y_ratio)
+        print("x/y ratio: %s/%s" % (x_ratio, y_ratio))
         if x_ratio < y_ratio:
             return int(image_width * x_ratio * _RES_CX[0]), int(image_height * x_ratio * _RES_CX[1])
         else:
@@ -189,7 +191,7 @@ class Step:
         if result:
             self.result_area = ResultArea((198, 0, _TARGET_RESOLUTION[0] - 30, _TARGET_RESOLUTION[1]))
 
-    def screen(self, surface, last):
+    def screen(self, surface, last_photo_bundle):
         surface.fill(_WHITE)
         if self.image:
             surface.blit(pygame.transform.scale(self.image, size), (0, 0))
@@ -202,20 +204,20 @@ class Step:
             surface.blit(s, (0, 0))
         if self.is_result_screen():
             images = []
-            for image_path in last.raw:
+            for image_path in last_photo_bundle.raw:
                 images.append(load_image(image_path, -1))
             if not self.transform_result_size:
                 self.transform_result_size = self.result_area.size_for_screen(images)
                 print("transform_result_size: %s,%s" % (self.transform_result_size[0], self.transform_result_size[1]))
             for index, image in enumerate(images):
                 transformed_image = pygame.transform.scale(image[0], self.transform_result_size)
-                surface.blit(transformed_image, self.start_coords(images, index))
+                surface.blit(transformed_image, self.start_cords(images, index))
         return surface
 
     def is_result_screen(self):
         return self.result_area
 
-    def start_coords(self, images, index):
+    def start_cords(self, images, index):
         return (self.result_area.mid_point[0] - self.transform_result_size[0] / 2, self.result_area.mid_point[1] - (
             self.transform_result_size[1] * (len(images)) / 2) + self.transform_result_size[
                     1] * index)
@@ -227,7 +229,7 @@ class Step:
             if not args.test_image:
                 photo_name = game_window.generator.raw_queue.pop()
                 command = string.Template(self.command[1]).safe_substitute(filename=photo_name)
-                print("executing: \"%s\"" % command)
+                print("executing: '%s'" % command)
                 subprocess.call(command.split(' '))
             self.command_running = False
             next_screen = self.command[0]
