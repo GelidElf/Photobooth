@@ -29,10 +29,9 @@ parser.add_argument('--preview_path', default=os.path.join(_ROOT_DIR, 'preview')
 
 args = parser.parse_args()
 
-if args.full_screen:
-    _size = fborx.get_screen_size()
-else:
-    _SIZE = (args.x, args.y)
+
+_SIZE = (args.x, args.y)
+
 _RES_CX = (float(_SIZE[0]) / _EXPECTED_RESOLUTION[0], float(_SIZE[1]) / _EXPECTED_RESOLUTION[1])
 print("_RES_CX: %s,%s" % _RES_CX)
 _TARGET_RESOLUTION = (800 * _RES_CX[0], 480 * _RES_CX[1])
@@ -100,7 +99,6 @@ class PhotoNameGenerator:
 
 
 class GameWindow:
-    size = None
     screen = None
     clock = None
     windows = {}
@@ -110,9 +108,9 @@ class GameWindow:
     last_result_image = None
     processor = None
 
-    def __init__(self, default_size, full_screen=False):
+    def __init__(self, screen):
         self.processor = Processor()
-        self.screen, self.size = fborx.get_screen(default_size, full_screen)
+        self.screen = screen
         self.clock = pygame.time.Clock()
         self.generator = PhotoNameGenerator(args.prefix, args.raw_path, args.preview_path)
         self.windows["welcome"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.size))])
@@ -262,7 +260,9 @@ class Step:
 
 
 args = parser.parse_args()
-gw = GameWindow(_SIZE, args.full_screen)
+screen = fborx.get_screen(_SIZE, args.full_screen)
+update_globals(screen.get_mode())
+gw = GameWindow(screen)
 pygame.time.set_timer(_COUNT_DOWN_EVENT, 1000)
 running = True
 while running:
