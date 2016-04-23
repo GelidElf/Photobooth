@@ -15,14 +15,14 @@ def get_screen(size, full_screen=False):
                                     display = get_fb_display()
                             except:
                                     display = get_window_display()
-                    print("Original X server size: %d x %d" % (pygame.display.Info().current_w, pygame.display.Info().current_h))
-                    if not size:
-                            size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-                    print('Resizing to %sx%s' % size)
+                    print("Original X server size: %d x %d" % (pygame.display.Info().current_w,
+                                                               pygame.display.Info().current_h))
                     if full_screen:
-                        return display.set_mode(size,pygame.FULLSCREEN),size
+                        size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
+                        return display.set_mode(size, pygame.FULLSCREEN), size
                     else:
-                        return display.set_mode(size),size
+                        print('Resizing to %sx%s' % size)
+                        return display.set_mode(size), size
 
 
 def get_window_display():
