@@ -29,7 +29,10 @@ parser.add_argument('--preview_path', default=os.path.join(_ROOT_DIR, 'preview')
 
 args = parser.parse_args()
 
-_SIZE = (args.x, args.y)
+if args.full_screen:
+    _size = fborx.get_screen_size()
+else:
+    _SIZE = (args.x, args.y)
 _RES_CX = (float(_SIZE[0]) / _EXPECTED_RESOLUTION[0], float(_SIZE[1]) / _EXPECTED_RESOLUTION[1])
 print("_RES_CX: %s,%s" % _RES_CX)
 _TARGET_RESOLUTION = (800 * _RES_CX[0], 480 * _RES_CX[1])

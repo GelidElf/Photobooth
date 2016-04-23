@@ -3,6 +3,12 @@ import os
 size = (0, 0)
 
 
+def get_screen_size():
+    print("Original X server size: %d x %d" % (pygame.display.Info().current_w,
+                                                               pygame.display.Info().current_h))
+    return pygame.display.Info().current_w, pygame.display.Info().current_h
+
+
 def get_screen(size, full_screen=False):
                     pygame.init()
                     if 'DISPLAY' in os.environ:
@@ -15,14 +21,12 @@ def get_screen(size, full_screen=False):
                                     display = get_fb_display()
                             except:
                                     display = get_window_display()
-                    print("Original X server size: %d x %d" % (pygame.display.Info().current_w,
-                                                               pygame.display.Info().current_h))
+                    print('Resizing to %sx%s' % size)
                     if full_screen:
-                        size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
-                        return display.set_mode(size, pygame.FULLSCREEN), size
+                        return display.set_mode(size, pygame.FULLSCREEN)
                     else:
-                        print('Resizing to %sx%s' % size)
-                        return display.set_mode(size), size
+
+                        return display.set_mode(size)
 
 
 def get_window_display():
