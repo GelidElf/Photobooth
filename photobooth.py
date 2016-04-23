@@ -8,6 +8,13 @@ import string
 
 gphoto_command = 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'
 
+_ROOT_DIR = os.path.dirname(__file__)
+_WHITE = (255, 255, 255)
+_RED = (255, 0, 0)
+_COUNT_DOWN_EVENT = pygame.USEREVENT + 1
+_EXPECTED_RESOLUTION = (800, 480)
+_EXT = ".jpg"
+
 parser = argparse.ArgumentParser(description='Photobooth.')
 parser.add_argument('-f', '--full_screen', action='store_true', default=False)
 parser.add_argument('-x', type=int, default=720)
@@ -17,21 +24,16 @@ parser.add_argument('-b', '--border', default=0)
 parser.add_argument('-tca', '--test_click_area', action='store_true', default=False)
 parser.add_argument('-ti', '--test-image', action='store_true', default=False)
 parser.add_argument('--prefix', default='test_session')
-parser.add_argument('--raw_path', default='./raw')
-parser.add_argument('--preview_path', default='./preview')
+parser.add_argument('--raw_path', default=os.path.join(_ROOT_DIR, 'raw'))
+parser.add_argument('--preview_path', default=os.path.join(_ROOT_DIR, 'preview'))
 
 args = parser.parse_args()
 
-size = (args.x, args.y)
-_WHITE = (255, 255, 255)
-_RED = (255, 0, 0)
-_COUNT_DOWN_EVENT = pygame.USEREVENT + 1
-_EXPECTED_RESOLUTION = (800, 480)
-_RES_CX = (float(size[0]) / _EXPECTED_RESOLUTION[0], float(size[1]) / _EXPECTED_RESOLUTION[1])
+_SIZE = (args.x, args.y)
+_RES_CX = (float(_SIZE[0]) / _EXPECTED_RESOLUTION[0], float(_SIZE[1]) / _EXPECTED_RESOLUTION[1])
 print("_RES_CX: %s,%s" % _RES_CX)
 _TARGET_RESOLUTION = (800 * _RES_CX[0], 480 * _RES_CX[1])
 print("_TARGET_RESOLUTION: %s,%s" % _TARGET_RESOLUTION)
-_EXT = ".jpg"
 
 
 def load_image(name, color_key=None, style=None):
@@ -41,7 +43,7 @@ def load_image(name, color_key=None, style=None):
         else:
             fullname = os.path.join(name)
     else:
-        fullname = os.path.join('images', style, name)
+        fullname = os.path.join(_ROOT_DIR,'images', style, name)
     print("image: \"%s\"" % fullname)
     image = pygame.image.load(fullname)
     image = image.convert()
@@ -65,10 +67,10 @@ class PhotoBundle:
 
 
 class PhotoNameGenerator:
-    prefix = "test_session"
+    prefix = None
     photo_count = 0
-    raw_path = "."
-    preview_path = "."
+    raw_path = None
+    preview_path = None
     last_photo_bundle = None
     raw_queue = None
 
@@ -145,7 +147,6 @@ class GameWindow:
 
 class ResultArea:
     area = None
-    size = None
     mid_point = None
 
     def __init__(self, area):
@@ -194,7 +195,7 @@ class Step:
     def screen(self, surface, last_photo_bundle):
         surface.fill(_WHITE)
         if self.image:
-            surface.blit(pygame.transform.scale(self.image, size), (0, 0))
+            surface.blit(pygame.transform.scale(self.image, _SIZE), (0, 0))
         if args.test_click_area and self.click_transitions:
             s = pygame.Surface(surface.get_size())
             s.set_alpha(128)
@@ -258,7 +259,7 @@ class Step:
 
 
 args = parser.parse_args()
-gw = GameWindow(size, args.full_screen)
+gw = GameWindow(_SIZE, args.full_screen)
 pygame.time.set_timer(_COUNT_DOWN_EVENT, 1000)
 running = True
 while running:
