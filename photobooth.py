@@ -94,10 +94,10 @@ class PhotoNameGenerator:
         self.banner_path = os.path.join(session_path, 'banner.jpg')
         self.raw_path = os.path.join(session_path, "raw")
         if not os.path.exists(self.raw_path):
-            os.makedirs(self.banner_path)
+            os.makedirs(self.raw_path)
         self.preview_path = os.path.join(session_path, "preview")
         if not os.path.exists(self.preview_path):
-            os.makedirs(self.banner_path)
+            os.makedirs(self.session_path)
         self.raw_queue = []
 
     def create(self, number_photos=1):
