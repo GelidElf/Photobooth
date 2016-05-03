@@ -85,11 +85,13 @@ class PhotoNameGenerator:
     raw_queue = None
 
     def __init__(self, prefix, output_path):
-        session_path = os.path.join(output_path, args.prefix)
+        self.prefix = prefix
+        session_path = os.path.join(output_path, self.prefix)
         if not os.path.exists(session_path):
             os.makedirs(session_path)
+            print "ERROR: Move the banner to the path"
+            exit (0)
         self.banner_path = os.path.join(session_path, 'banner.jpg')
-        self.prefix = prefix
         self.raw_path = os.path.join(session_path, "raw")
         self.preview_path = os.path.join(session_path, "preview")
         self.raw_queue = []
