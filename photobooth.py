@@ -85,10 +85,13 @@ class PhotoNameGenerator:
     raw_queue = None
 
     def __init__(self, prefix, output_path):
-        self.banner_path = os.path.join(output_path, args.prefix, 'banner.jpg')
+        session_path = os.path.join(output_path, args.prefix)
+        if not os.path.exists(session_path):
+            os.makedirs(session_path)
+        self.banner_path = os.path.join(session_path, 'banner.jpg')
         self.prefix = prefix
-        self.raw_path = os.path.join(output_path, args.prefix, "raw")
-        self.preview_path = os.path.join(output_path, args.prefix, "preview")
+        self.raw_path = os.path.join(session_path, "raw")
+        self.preview_path = os.path.join(session_path, "preview")
         self.raw_queue = []
 
     def create(self, number_photos=1):
@@ -101,8 +104,8 @@ class PhotoNameGenerator:
             for _ in range(number_photos):
                 self.photo_count += 1
                 photo_name = "%s-%s%s" % (self.prefix, self.photo_count, _EXT)
-                self.raw_queue.append(os.path.abspath(os.path.join(self.raw_path, self.prefix, photo_name)))
-            processed = os.path.abspath(os.path.join(self.preview_path, self.prefix, photo_name))
+                self.raw_queue.append(os.path.abspath(os.path.join(self.raw_path, photo_name)))
+            processed = os.path.abspath(os.path.join(self.preview_path, photo_name))
         self.last_photo_bundle = PhotoBundle(list(self.raw_queue), processed)
         print("created %s" % self.last_photo_bundle)
 
