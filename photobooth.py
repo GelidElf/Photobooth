@@ -9,6 +9,7 @@ import string
 gphoto_command = 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'
 
 _ROOT_DIR = os.path.dirname(__file__)
+print "ROOT DIR %s" % _ROOT_DIR
 _WHITE = (255, 255, 255)
 _RED = (255, 0, 0)
 _COUNT_DOWN_EVENT = pygame.USEREVENT + 1
@@ -24,8 +25,7 @@ parser.add_argument('-b', '--border', default=0)
 parser.add_argument('-tca', '--test_click_area', action='store_true', default=False)
 parser.add_argument('-ti', '--test-image', action='store_true', default=False)
 parser.add_argument('--prefix', default='test_session')
-parser.add_argument('--raw_path', default=os.path.join(_ROOT_DIR, 'raw'))
-parser.add_argument('--preview_path', default=os.path.join(_ROOT_DIR, 'preview'))
+parser.add_argument('--output_path', default=_ROOT_DIR)
 
 args = parser.parse_args()
 
@@ -38,7 +38,7 @@ def update_globals(size):
     global SIZE
     global RES_CX
     SIZE = size
-    RES_CX  = (float(SIZE[0]) / _EXPECTED_RESOLUTION[0], float(SIZE[1]) / _EXPECTED_RESOLUTION[1])
+    RES_CX = (float(SIZE[0]) / _EXPECTED_RESOLUTION[0], float(SIZE[1]) / _EXPECTED_RESOLUTION[1])
     print("RES_CX: %s,%s" % RES_CX)
     global TARGET_RESOLUTION
     TARGET_RESOLUTION = (800 * RES_CX[0], 480 * RES_CX[1])
@@ -52,7 +52,7 @@ def load_image(name, color_key=None, style=None):
         else:
             fullname = os.path.join(name)
     else:
-        fullname = os.path.join(_ROOT_DIR,'images', style, name)
+        fullname = os.path.join(_ROOT_DIR, 'images', style, name)
     print("image: \"%s\"" % fullname)
     image = pygame.image.load(fullname)
     image = image.convert()
@@ -81,12 +81,14 @@ class PhotoNameGenerator:
     raw_path = None
     preview_path = None
     last_photo_bundle = None
+    banner_path = None
     raw_queue = None
 
-    def __init__(self, prefix, raw_path, preview_path):
+    def __init__(self, prefix, output_path):
+        self.banner_path = os.path.join(output_path, args.prefix, 'banner.jpg')
         self.prefix = prefix
-        self.raw_path = raw_path
-        self.preview_path = preview_path
+        self.raw_path = os.path.join(output_path, args.prefix, "raw")
+        self.preview_path = os.path.join(output_path, args.prefix, "preview")
         self.raw_queue = []
 
     def create(self, number_photos=1):
@@ -116,10 +118,10 @@ class GameWindow:
     processor = None
 
     def __init__(self, screen):
-        self.processor = Processor()
+        self.generator = PhotoNameGenerator(args.prefix, args.output_path)
+        self.processor = Processor(self.generator.banner_path)
         self.screen = screen
         self.clock = pygame.time.Clock()
-        self.generator = PhotoNameGenerator(args.prefix, args.raw_path, args.preview_path)
         self.windows["welcome"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.screen.get_size()))])
         self.windows["menu"] = Step('Slide2.JPG', [
             ("single-5", pygame.Rect(self.screen.get_size()[0] * 0.25, 0, self.screen.get_size()[0] * 0.5, self.screen.get_size()[1]), 1)])
@@ -268,9 +270,9 @@ class Step:
 
 
 args = parser.parse_args()
-screen = fborx.get_screen(SIZE, args.full_screen)
-update_globals(screen.get_size())
-gw = GameWindow(screen)
+main_screen = fborx.get_screen(SIZE, args.full_screen)
+update_globals(main_screen.get_size())
+gw = GameWindow(main_screen)
 pygame.time.set_timer(_COUNT_DOWN_EVENT, 1000)
 running = True
 while running:

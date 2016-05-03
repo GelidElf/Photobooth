@@ -6,7 +6,7 @@ from PIL import ImageColor
 class Processor:
     banner = None
 
-    def __init__(self, banner_path='images/banner.jpg'):
+    def __init__(self, banner_path):
         self.banner = Image.open(banner_path)
         print("banner", self.banner.format, self.banner.size, self.banner.mode)
 
