@@ -5,6 +5,7 @@ from PIL import ImageColor
 
 class Processor:
     banner = None
+    resized_from = None
 
     def __init__(self, banner_path):
         self.banner = Image.open(banner_path)
@@ -24,6 +25,8 @@ class Processor:
 
     def dual_single_image(self, photo_bundle):
         im = Image.open(photo_bundle.raw[0])
+
+        self.resize_banner_to_image(im)
         print("image", im.format, im.size, im.mode)
         new_height = int((im.size[1] + self.banner.size[1]) * 1.05) * 2
         new_width = int(new_height / 1.5)
@@ -74,3 +77,13 @@ class Processor:
         new_im.paste(im2, (int(new_width / 2 - im2.size[0] / 2), new_height - im2.size[1] - self.banner.size[1]))
         new_im.paste(self.banner, (int(new_width / 2 - self.banner.size[0] / 2), new_height - self.banner.size[1]))
         return new_im
+
+    def resize_banner_to_image(self, im):
+        if self.resized_from != im.size:
+            print "old banner size %sx%s" % self.banner.size
+            banner_ratio = (im.size[1] * 0.25) / self.banner.size[1]
+            banner_size = map(lambda x: int(x * banner_ratio), self.banner.size)
+            if self.banner != banner_size:
+                self.banner = self.banner.resize(banner_size, Image.BICUBIC)
+                self.resized_from = im.size
+            print "new banner size %sx%s" % self.banner.size

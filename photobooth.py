@@ -89,7 +89,7 @@ class PhotoNameGenerator:
         session_path = os.path.join(output_path, self.prefix)
         if not os.path.exists(session_path):
             os.makedirs(session_path)
-            print "ERROR: Move the banner to the path"
+            print "ERROR: Session path '%s' created, Move the banner to the path" % session_path
             exit (0)
         self.banner_path = os.path.join(session_path, 'banner.jpg')
         self.raw_path = os.path.join(session_path, "raw")
