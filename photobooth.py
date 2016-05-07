@@ -104,8 +104,8 @@ class PhotoNameGenerator:
         self.raw_queue = []
         if args.test_image:
             for _ in range(number_photos):
-                self.raw_queue.append('images/maxresdefault.jpg')
-            processed = 'images/maxresdefault-processed%s.jpg' % number_photos
+                self.raw_queue.append(os.path.abspath(os.path.join(_ROOT_DIR, 'images/maxresdefault.jpg')))
+            processed = os.path.abspath(os.path.join(_ROOT_DIR, 'images/maxresdefault-processed%s.jpg' % number_photos))
         else:
             for _ in range(number_photos):
                 self.photo_count += 1
@@ -139,8 +139,8 @@ class GameWindow:
         self.windows["single-4"] = Step('Slide4.JPG', None, ('single-3', 1))
         self.windows["single-3"] = Step('Slide5.JPG', None, ('single-2', 1))
         self.windows["single-2"] = Step('Slide6.JPG', None, ('single-1', 1))
-        self.windows["single-1"] = Step('Slide7.JPG', None, ('single-0', 1))
-        self.windows["single-0"] = Step(None, command=('single-result', gphoto_command))
+        self.windows["single-1"] = Step('Slide7.JPG', None, ('single-0', 1), command=('single-result', gphoto_command))
+        self.windows["single-0"] = Step(None)
 
         return_to_menu = pygame.Rect((0, self.screen.get_size()[1] - 200), (200, self.screen.get_size()[1]))
         self.windows["single-result"] = Step('Slide8.JPG', [("menu", return_to_menu)], ('welcome', 20), result=True)
