@@ -25,7 +25,7 @@ class Processor:
 
     def dual_single_image(self, photo_bundle):
         im = Image.open(photo_bundle.raw[0])
-
+        im.thumbnail(map(lambda x: int(x * 0.5), im.size), Image.ANTIALIAS)
         self.resize_banner_to_image(im)
         print("image", im.format, im.size, im.mode)
         new_height = int((im.size[1] + self.banner.size[1]) * 1.05) * 2
