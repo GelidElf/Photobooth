@@ -31,7 +31,6 @@ args = parser.parse_args()
 
 SIZE = (args.x, args.y)
 RES_CX = None
-TARGET_RESOLUTION = None
 
 
 def update_globals(size):
@@ -40,12 +39,9 @@ def update_globals(size):
     SIZE = size
     RES_CX = (float(SIZE[0]) / _EXPECTED_RESOLUTION[0], float(SIZE[1]) / _EXPECTED_RESOLUTION[1])
     print("RES_CX: %s,%s" % RES_CX)
-    global TARGET_RESOLUTION
-    TARGET_RESOLUTION = (800 * RES_CX[0], 480 * RES_CX[1])
-    print("TARGET_RESOLUTION: %s,%s" % TARGET_RESOLUTION)
 
 
-def load_image(name, color_key=None, style=None):
+def load_image(name, style=None):
     if not style:
         if os.path.isabs(name):
             fullname = name
@@ -54,12 +50,7 @@ def load_image(name, color_key=None, style=None):
     else:
         fullname = os.path.join(_ROOT_DIR, 'images', style, name)
     print("image: \"%s\"" % fullname)
-    image = pygame.image.load(fullname)
-    image = image.convert()
-    if color_key is not None:
-        if color_key is -1:
-            color_key = image.get_at((0, 0))
-        image.set_colorkey(color_key, pygame.RLEACCEL)
+    image = pygame.image.load(fullname).convert()
     return image, image.get_rect()
 
 
@@ -204,13 +195,15 @@ class Step:
                  result=False):
         self.start_time = 0
         if image_name:
-            self.image, singleRect = load_image(image_name, -1, args.style)
+            self.image, singleRect = load_image(image_name, style=args.style)
         self.click_transitions = click_transitions
         self.time_transition = time_transition
         self.event_transitions = event_transitions
         self.command = command
         if result:
-            self.result_area = ResultArea((198, 0, TARGET_RESOLUTION[0] - 30, TARGET_RESOLUTION[1]))
+            w_ratio = SIZE[0]/800
+            border = (30 * w_ratio)
+            self.result_area = ResultArea((198 * w_ratio, border, SIZE[0] - border, SIZE[1] - border))
 
     def screen(self, surface, last_photo_bundle):
         surface.fill(_WHITE)
@@ -226,7 +219,7 @@ class Step:
         if self.is_result_screen():
             images = []
             for image_path in last_photo_bundle.raw:
-                images.append(load_image(image_path, -1))
+                images.append(load_image(image_path))
             if not self.transform_result_size:
                 self.transform_result_size = self.result_area.size_for_screen(images)
                 print("transform_result_size: %s,%s" % (self.transform_result_size[0], self.transform_result_size[1]))
