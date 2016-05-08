@@ -30,15 +30,18 @@ parser.add_argument('--output_path', default=_ROOT_DIR)
 args = parser.parse_args()
 
 SIZE = (args.x, args.y)
-RES_CX = None
+RES_AREA = None
 
 
 def update_globals(size):
     global SIZE
-    global RES_CX
+    global RES_AREA
     SIZE = size
-    RES_CX = (float(SIZE[0]) / _EXPECTED_RESOLUTION[0], float(SIZE[1]) / _EXPECTED_RESOLUTION[1])
-    print("RES_CX: %s,%s" % RES_CX)
+    res_cx = (float(SIZE[0]) / _EXPECTED_RESOLUTION[0], float(SIZE[1]) / _EXPECTED_RESOLUTION[1])
+    print("res_cx: %s,%s" % res_cx)
+    border = (30 * res_cx[0])
+    RES_AREA = (198 * res_cx[0], border, SIZE[0] - border, SIZE[1] - border)
+    print("RES_AREA: %s,%s,%s,%s" % RES_AREA)
 
 
 def load_image(name, style=None):
@@ -159,12 +162,14 @@ class ResultArea:
     area = None
     mid_point = None
     size = None
+    bounds = None
 
     def __init__(self, area):
         self.area = area
         print("_RESULT_AREA: %s,%s,%s,%s" % self.area)
         self.size = (self.area[2] - self.area[0], self.area[3] - self.area[1])
         print("_RESULT_AREASIZE: %s,%s" % self.size)
+        self.bounds = (self.area[0], self.area[1], self.size[0], self.size[1])
         self.mid_point = (self.area[0] + self.size[0] / 2, self.area[1] + self.size[1] / 2)
         print("_RESULT_AREA_MID_POINT: %s,%s" % self.mid_point)
 
@@ -175,9 +180,9 @@ class ResultArea:
         y_ratio = float(self.size[1]) / (image_height * len(images))
         print("x/y ratio: %s/%s" % (x_ratio, y_ratio))
         if x_ratio < y_ratio:
-            return int(image_width * x_ratio * RES_CX[0]), int(image_height * x_ratio * RES_CX[1])
+            return int(image_width * x_ratio), int(image_height * x_ratio)
         else:
-            return int(image_width * y_ratio * RES_CX[0]), int(image_height * y_ratio * RES_CX[1])
+            return int(image_width * y_ratio), int(image_height * y_ratio)
 
 
 class Step:
@@ -201,9 +206,7 @@ class Step:
         self.event_transitions = event_transitions
         self.command = command
         if result:
-            w_ratio = SIZE[0]/800
-            border = (30 * w_ratio)
-            self.result_area = ResultArea((198 * w_ratio, border, SIZE[0] - border, SIZE[1] - border))
+            self.result_area = ResultArea(RES_AREA)
 
     def screen(self, surface, last_photo_bundle):
         surface.fill(_WHITE)
@@ -226,6 +229,12 @@ class Step:
             for index, image in enumerate(images):
                 transformed_image = pygame.transform.scale(image[0], self.transform_result_size)
                 surface.blit(transformed_image, self.start_cords(images, index))
+            if args.test_click_area:
+                s = pygame.Surface(surface.get_size())
+                s.set_alpha(128)
+                s.fill(_WHITE)
+                pygame.draw.rect(s, _RED, self.result_area.bounds, 10)
+                surface.blit(s, (0, 0))
         return surface
 
     def is_result_screen(self):
