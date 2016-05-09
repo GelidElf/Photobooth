@@ -1,6 +1,7 @@
 import os
 from PIL import Image
 from PIL import ImageColor
+from PIL import ImageDraw
 
 
 class Processor:
@@ -28,18 +29,21 @@ class Processor:
         im.thumbnail(map(lambda x: int(x * 0.5), im.size), Image.ANTIALIAS)
         self.resize_banner_to_image(im)
         print("image", im.format, im.size, im.mode)
-        new_height = int((im.size[1] + self.banner.size[1]) * 1.05) * 2
-        new_width = int(new_height / 1.5)
-        top_border = int(new_height / 40)
+        new_height = int((im.size[1] + self.banner.size[1]) * 1.15) * 2
+        new_width = int(new_height / 1.45)
+        top_border = int(new_height / 20)
         print("new", new_width, new_height, top_border)
 
         new_im = Image.new('RGBA', (new_width, new_height), ImageColor.getcolor('WHITE', 'RGBA'))
+        draw = ImageDraw.Draw(new_im)
+        line_y = top_border + im.size[1] + self.banner.size[1]
+        draw.line((0,line_y,new_width,line_y), fill=128, width=0)
         banner_x_start = int(new_width / 2 - self.banner.size[0] / 2)
-        new_im.paste(self.banner, (banner_x_start, new_height - self.banner.size[1]))
-        new_im.paste(self.banner, (banner_x_start, new_height/2 - self.banner.size[1]))
+        new_im.paste(self.banner, (banner_x_start, top_border + im.size[1]))
+        new_im.paste(self.banner, (banner_x_start, int(top_border*1.5) + im.size[1]*2 + self.banner.size[1]))
         im_x_start = int(new_width / 2 - im.size[0] / 2)
         new_im.paste(im, (im_x_start, top_border))
-        new_im.paste(im, (im_x_start, top_border+new_height/2))
+        new_im.paste(im, (im_x_start, int(top_border*1.5)+im.size[1]+self.banner.size[1]))
         return new_im
 
     def process_single_image(self, photo_bundle):
