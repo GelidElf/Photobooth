@@ -133,11 +133,12 @@ class GameWindow:
         self.windows["single-4"] = Step('Slide4.JPG', None, ('single-3', 1))
         self.windows["single-3"] = Step('Slide5.JPG', None, ('single-2', 1))
         self.windows["single-2"] = Step('Slide6.JPG', None, ('single-1', 1))
-        self.windows["single-1"] = Step('Slide7.JPG', None, ('single-0', 1), command=('single-result', gphoto_command))
-        self.windows["single-0"] = Step(None)
+        self.windows["single-1"] = Step('Slide7.JPG', None, ('smile', 1))
+        self.windows["smile"] = Step('Slide8.JPG', None, ('process', 1))
+        self.windows["process"] = Step('Slide9.JPG', None, command=('single-result', gphoto_command))
 
         return_to_menu = pygame.Rect((0, self.screen.get_size()[1] - 200), (200, self.screen.get_size()[1]))
-        self.windows["single-result"] = Step('Slide8.JPG', [("menu", return_to_menu)], ('welcome', 20), result=True)
+        self.windows["single-result"] = Step('Slide10.JPG', [("menu", return_to_menu)], ('welcome', 20), result=True)
 
         self.current_step = self.windows["welcome"]
         self.screen_surface = pygame.Surface(self.screen.get_size())
@@ -253,7 +254,7 @@ class Step:
                 photo_name = game_window.generator.raw_queue.pop()
                 command = string.Template(self.command[1]).safe_substitute(filename=photo_name)
                 print("executing: '%s'" % command)
-                subprocess.call(command.split(' '))
+                subprocess.Popen(command.split(' '))
             self.command_running = False
             next_screen = self.command[0]
         self.start_time = 0
