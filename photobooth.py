@@ -254,7 +254,7 @@ class Step:
                 photo_name = game_window.generator.raw_queue.pop()
                 command = string.Template(self.command[1]).safe_substitute(filename=photo_name)
                 print("executing: '%s'" % command)
-                subprocess.Popen(command.split(' '))
+                subprocess.call(command.split(' '))
             self.command_running = False
             next_screen = self.command[0]
         self.start_time = 0
