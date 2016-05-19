@@ -134,7 +134,7 @@ class GameWindow:
         self.windows["single-3"] = Step('Slide5.JPG', None, ('single-2', 1))
         self.windows["single-2"] = Step('Slide6.JPG', None, ('single-1', 1))
         self.windows["single-1"] = Step('Slide7.JPG', None, ('smile', 1))
-        self.windows["smile"] = Step('Slide8.JPG', None, command=('single-result', gphoto_command))
+        self.windows["smile"] = Step('Slide8.JPG', None, command=('process', gphoto_command))
         self.windows["process"] = Step('Slide9.JPG', None, ('single-result', 1))
 
         return_to_menu = pygame.Rect((0, self.screen.get_size()[1] - 200), (200, self.screen.get_size()[1]))
