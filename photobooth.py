@@ -263,8 +263,8 @@ class Step:
         if self.command and not self.command_running:
             self.command_running = True
             if not args.test_image:
-                    photo_name = game_window.generator.last_photo_bundle.preview
-                command = string.Template(command).safe_substitute(filename=photo_name)
+                photo_name = game_window.generator.raw_queue.pop()
+                command = string.Template(self.command[1]).safe_substitute(filename=photo_name)
                 print("executing: '%s'" % command)
                 subprocess.call(command.split(' '))
             self.command_running = False
