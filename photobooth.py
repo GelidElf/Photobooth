@@ -7,6 +7,7 @@ import subprocess
 import string
 
 gphoto_command = 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'
+print_command = ' lpr -P Canon_CP910_ipp ${filename}'
 
 _ROOT_DIR = os.path.dirname(__file__)
 print "ROOT DIR %s" % _ROOT_DIR
@@ -66,7 +67,7 @@ class PhotoBundle:
         self.processed = processed
 
     def __str__(self):
-        return "[%s:%s" % (self.processed,self.raw)
+        return "[%s:%s" % (self.processed, self.raw)
 
 
 class PhotoNameGenerator:
@@ -150,9 +151,20 @@ class GameWindow:
             self.current_step = self.windows[next_window_name]
             self.paint(self.current_step.screen(self.screen_surface, self.generator.last_photo_bundle))
             if self.generator.last_photo_bundle and self.current_step.transform_result_size:
-                self.processor.dual_single_image(self.generator.last_photo_bundle).save(self.generator.last_photo_bundle.processed)
+                self.process_image()
                 self.generator.last_photo_bundle = None
         return self.current_step
+
+    def process_image(self):
+        self.processor.dual_single_image(self.generator.last_photo_bundle).save(
+            self.generator.last_photo_bundle.processed)
+        self.print_image()
+
+    def print_image(self):
+        photo_name = self.generator.last_photo_bundle.processed
+        command = string.Template(print_command).safe_substitute(filename=photo_name)
+        print("executing: '%s'" % command)
+        subprocess.call(command.split(' '))
 
     def paint(self, screen):
         self.screen.blit(screen, (0, 0))
@@ -292,7 +304,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             print event.type
-	    running = False
+            running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 print event.key
