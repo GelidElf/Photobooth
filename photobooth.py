@@ -290,9 +290,11 @@ while running:
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            print event.type
+	    running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
+                print event.key
                 running = False
         gw.transition(event)
     gw.clock.tick(60)
