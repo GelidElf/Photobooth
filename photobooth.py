@@ -7,7 +7,7 @@ import subprocess
 import string
 
 gphoto_command = 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'
-print_command = ' lpr -P Canon_CP910_ipp ${filename}'
+print_command = 'lpr -P Canon_CP910_ipp ${filename}'
 
 _ROOT_DIR = os.path.dirname(__file__)
 print "ROOT DIR %s" % _ROOT_DIR
