@@ -1,5 +1,8 @@
+import argparse
 import os
+
 import pygame
+
 import fborx
 from processor_pillow import Processor
 import argparse
@@ -72,12 +75,13 @@ class PhotoBundle:
 
 class PhotoNameGenerator:
     prefix = None
-    photo_count = 0
+    photo_count = None
     raw_path = None
     preview_path = None
     last_photo_bundle = None
     banner_path = None
     raw_queue = None
+    status_file = None
 
     def __init__(self, prefix, output_path):
         self.prefix = prefix
@@ -94,13 +98,16 @@ class PhotoNameGenerator:
         if not os.path.exists(self.preview_path):
             os.makedirs(self.preview_path)
         self.raw_queue = []
+        self.status_file_name = os.path.join(session_path, "status.txt")
+        self.read_photo_counter()
 
     def create(self, number_photos=1):
         self.raw_queue = []
         if args.test_image:
             for _ in range(number_photos):
+                self.photo_count += 1
                 self.raw_queue.append(os.path.abspath(os.path.join(_ROOT_DIR, 'images/maxresdefault.jpg')))
-            processed = os.path.abspath(os.path.join(_ROOT_DIR, 'images/maxresdefault-processed%s.jpg' % number_photos))
+            processed = os.path.abspath(os.path.join(_ROOT_DIR, 'images/maxresdefault-processed%s.jpg' % self.photo_count))
         else:
             for _ in range(number_photos):
                 self.photo_count += 1
@@ -108,8 +115,22 @@ class PhotoNameGenerator:
                 self.raw_queue.append(os.path.abspath(os.path.join(self.raw_path, photo_name)))
             processed = os.path.abspath(os.path.join(self.preview_path, photo_name))
         self.last_photo_bundle = PhotoBundle(list(self.raw_queue), processed)
+        self.update_photo_counter()
         print("created %s" % self.last_photo_bundle)
 
+    def read_photo_counter(self):
+        try:
+            f = open(self.status_file_name)
+            with f:
+                self.photo_count = int(f.read())
+        except IOError:
+            self.photo_count = 0
+        except ValueError:
+            self.photo_count = 0
+
+    def update_photo_counter(self):
+        with open(self.status_file_name, "w") as f:
+            f.write(str(self.photo_count))
 
 class GameWindow:
     screen = None
@@ -158,7 +179,8 @@ class GameWindow:
     def process_image(self):
         self.processor.dual_single_image(self.generator.last_photo_bundle).save(
             self.generator.last_photo_bundle.processed)
-        self.print_image()
+        if not args.test_image:
+            self.print_image()
 
     def print_image(self):
         photo_name = self.generator.last_photo_bundle.processed
