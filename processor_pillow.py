@@ -29,8 +29,7 @@ class Processor:
     def dual_single_image(self, photo_bundle):
         im = Image.open(photo_bundle.raw[0])
         im.thumbnail(map(lambda x: int(x * 0.5), im.size), Image.ANTIALIAS)
-        self.resize_banner_to_image(im)
-        self.resize_esif_logo_to_image(im)
+        self.resize_additions(im)
         print("image", im.format, im.size, im.mode)
         new_height = int((im.size[1] + self.banner.size[1]) * 1.15) * 2
         new_width = int(new_height / 1.45)
@@ -48,9 +47,9 @@ class Processor:
         new_im.paste(im, (im_x_start, top_border))
         new_im.paste(im, (im_x_start, int(top_border * 1.5) + im.size[1] + self.banner.size[1]))
         esif_logo_x_start = int(new_width - im_x_start - self.esif_logo.size[0])
-        esif_logo_y_start = int(new_height / 2 - self.esif_logo.size[1])
+        esif_logo_y_start = int(top_border + im.size[1])
         new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_y_start), mask=self.esif_logo)
-        new_im.paste(self.esif_logo, (esif_logo_x_start, new_height - self.esif_logo.size[1]), mask=self.esif_logo)
+        new_im.paste(self.esif_logo, (esif_logo_x_start, int(top_border * 1.5) + (im.size[1]*2) + self.banner.size[1]), mask=self.esif_logo)
         return new_im
 
     def process_single_image(self, photo_bundle):
@@ -89,22 +88,24 @@ class Processor:
         new_im.paste(self.banner, (int(new_width / 2 - self.banner.size[0] / 2), new_height - self.banner.size[1]))
         return new_im
 
-    def resize_banner_to_image(self, im):
+    def resize_additions(self, im):
         if self.resized_from != im.size:
-            print "old banner size %sx%s" % self.banner.size
-            banner_ratio = (im.size[1] * 0.25) / self.banner.size[1]
-            banner_size = map(lambda x: int(x * banner_ratio), self.banner.size)
-            if self.banner != banner_size:
-                self.banner = self.banner.resize(banner_size, Image.BICUBIC)
-                self.resized_from = im.size
-            print "new banner size %sx%s" % self.banner.size
+            self.resize_banner_to_image(im)
+            self.resize_esif_logo_to_image(im)
+            self.resized_from = im.size
+
+    def resize_banner_to_image(self, im):
+        print "old banner size %sx%s" % self.banner.size
+        banner_ratio = (im.size[1] * 0.25) / self.banner.size[1]
+        banner_size = map(lambda x: int(x * banner_ratio), self.banner.size)
+        if self.banner.size != banner_size:
+            self.banner = self.banner.resize(banner_size, Image.BICUBIC)
+        print "new banner size %sx%s" % self.banner.size
 
     def resize_esif_logo_to_image(self, im):
-        if self.resized_from != im.size:
-            print "old banner size %sx%s" % self.esif_logo.size
-            ratio = (im.size[1] * 0.25) / self.esif_logo.size[1]
-            size = map(lambda x: int(x * ratio), self.esif_logo.size)
-            if self.banner != size:
-                self.esif_logo = self.esif_logo.resize(size, Image.BICUBIC)
-                self.resized_from = im.size
-            print "new banner size %sx%s" % self.esif_logo.size
+        print "old banner size %sx%s" % self.esif_logo.size
+        ratio = (im.size[1] * 0.125) / self.esif_logo.size[1]
+        size = map(lambda x: int(x * ratio), self.esif_logo.size)
+        if self.esif_logo.size != size:
+            self.esif_logo = self.esif_logo.resize(size, Image.BICUBIC)
+        print "new banner size %sx%s" % self.esif_logo.size
