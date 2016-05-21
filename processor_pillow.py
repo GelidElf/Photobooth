@@ -10,7 +10,7 @@ class Processor:
 
     def __init__(self, banner_path):
         self.banner = Image.open(banner_path)
-        self.esif_logo = Image.open("images/logo_esif.png")
+        self.esif_logo = Image.open(os.path.join(os.path.dirname(__file__), "images/logo_esif.png"))
         print("banner", self.banner.format, self.banner.size, self.banner.mode)
 
     def process_image(self, photo_bundle):
