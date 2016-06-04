@@ -1,4 +1,3 @@
-import argparse
 import os
 
 import pygame
@@ -10,7 +9,8 @@ import subprocess
 import string
 
 gphoto_command = 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'
-print_command = 'lpr -P Canon_CP910_ipp ${filename}'
+print_command = 'lpr -P ${printer} ${filename}'
+printers = ('Canon_CP910_ipp', 'Canon_CP910_ipp_b')
 
 _ROOT_DIR = os.path.dirname(__file__)
 print "ROOT DIR %s" % _ROOT_DIR
@@ -132,6 +132,7 @@ class PhotoNameGenerator:
         with open(self.status_file_name, "w") as f:
             f.write(str(self.photo_count))
 
+
 class GameWindow:
     screen = None
     clock = None
@@ -141,6 +142,7 @@ class GameWindow:
     generator = None
     last_result_image = None
     processor = None
+    print_count = 0
 
     def __init__(self, screen):
         self.generator = PhotoNameGenerator(args.prefix, args.output_path)
@@ -156,13 +158,14 @@ class GameWindow:
         self.windows["single-3"] = Step('Slide5.JPG', None, ('single-2', 1))
         self.windows["single-2"] = Step('Slide6.JPG', None, ('single-1', 1))
         self.windows["single-1"] = Step('Slide7.JPG', None, ('smile', 1))
-        self.windows["smile"] = Step('Slide8.JPG', None, command=('process', gphoto_command))
+        self.windows["smile"] = Step('Slide8.JPG', None, command=('process', "PHOTO"))
         self.windows["process"] = Step('Slide9.JPG', None, ('single-result', 1))
-
         return_to_menu = pygame.Rect((0, self.screen.get_size()[1] - 200), (200, self.screen.get_size()[1]))
-        self.windows["single-result"] = Step('Slide10.JPG', [("menu", return_to_menu)], ('welcome', 20), result=True)
+        print_button = pygame.Rect((0, 0), (200, 200))
+        self.windows["single-result"] = Step('Slide10.JPG', [('menu', return_to_menu), ('print', print_button)], ('welcome', 20), result=True)
+        self.windows["print"] = Step('Slide11.JPG', None, ('menu', 2), command=('menu', 'PRINT'))
 
-        self.current_step = self.windows["welcome"]
+        self.current_step = self.windows['welcome']
         self.screen_surface = pygame.Surface(self.screen.get_size())
         self.paint(self.current_step.screen(self.screen_surface, self.generator.last_photo_bundle))
 
@@ -173,7 +176,6 @@ class GameWindow:
             self.paint(self.current_step.screen(self.screen_surface, self.generator.last_photo_bundle))
             if self.generator.last_photo_bundle and self.current_step.transform_result_size:
                 self.process_image()
-                self.generator.last_photo_bundle = None
         return self.current_step
 
     def process_image(self):
@@ -182,11 +184,21 @@ class GameWindow:
         if not args.test_image:
             self.print_image()
 
+    def take_photo(self):
+        photo_name = self.generator.raw_queue.pop()
+        command = string.Template(gphoto_command).safe_substitute(filename=photo_name)
+        print("executing: '%s'" % command)
+        if not args.test_image:
+            subprocess.call(command.split(' '))
+
     def print_image(self):
         photo_name = self.generator.last_photo_bundle.processed
-        command = string.Template(print_command).safe_substitute(filename=photo_name)
+        self.print_count += 1
+        printer_name = printers[self.print_count % 2]
+        command = string.Template(print_command).safe_substitute(filename=photo_name, printer=printer_name)
         print("executing: '%s'" % command)
-        subprocess.call(command.split(' '))
+        if not args.test_image:
+            subprocess.call(command.split(' '))
 
     def paint(self, screen):
         self.screen.blit(screen, (0, 0))
@@ -284,35 +296,36 @@ class Step:
         next_screen = None
         if self.command and not self.command_running:
             self.command_running = True
-            if not args.test_image:
-                photo_name = game_window.generator.raw_queue.pop()
-                command = string.Template(self.command[1]).safe_substitute(filename=photo_name)
-                print("executing: '%s'" % command)
-                subprocess.call(command.split(' '))
+            action_type = self.command[1]
+            if "PHOTO" == action_type:
+                game_window.take_photo()
+            elif 'PRINT' == action_type:
+                game_window.print_image()
             self.command_running = False
             next_screen = self.command[0]
         self.start_time = 0
         return next_screen
 
     def transition(self, e, game_window):
+        next_screen = None
         if self.command:
             self.start_time = 0
-            return self.execute(game_window)
-        if self.click_transitions and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
+            next_screen = self.execute(game_window)
+        elif self.click_transitions and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             for tran in self.click_transitions:
                 if tran[1].collidepoint(e.pos):
                     self.start_time = 0
                     if len(tran) > 2:
                         game_window.last_result_image = None
                         game_window.generator.create(tran[2])
-                    return tran[0]
-        if self.time_transition:
+                    next_screen = tran[0]
+        elif self.time_transition:
             if e.type == _COUNT_DOWN_EVENT:
                 self.start_time += 1
                 if self.start_time == self.time_transition[1]:
                     self.start_time = 0
-                    return self.time_transition[0]
-        return None
+                    next_screen = self.time_transition[0]
+        return next_screen
 
 
 args = parser.parse_args()
