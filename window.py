@@ -43,7 +43,8 @@ class GameWindow:
         return_to_menu = pygame.Rect((0, self.screen.get_size()[1] - 200), (200, self.screen.get_size()[1]))
         print_button = pygame.Rect((0, 0), (200, 200))
         self.windows["single-result"] = Step('Slide10.JPG', [('menu', return_to_menu), ('print', print_button)], ('welcome', 20), result=True)
-        self.windows["print"] = Step('Slide11.JPG', None, ('menu', 2), command=('menu', 'PRINT'))
+        self.windows["print"] = Step('Slide11.JPG', None, command=('print2', 'PRINT'))
+        self.windows["print2"] = Step('Slide11.JPG', None, ('menu', 2))
 
         self.current_step = self.windows['welcome']
         self.screen_surface = pygame.Surface(self.screen.get_size())
