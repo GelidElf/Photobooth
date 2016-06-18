@@ -1,4 +1,5 @@
 import pygame
+import os
 
 from config import current_config
 from utils import load_image
@@ -19,7 +20,10 @@ class Step:
                  result=False):
         self.start_time = 0
         if image_name:
-            self.image, singleRect = load_image(image_name, style=current_config.args.style)
+            if os.path.exists(image_name):
+                self.image, singleRect = load_image(image_name)
+            else:
+                self.image, singleRect = load_image(image_name, style=current_config.args.style)
         self.click_transitions = click_transitions
         self.time_transition = time_transition
         self.event_transitions = event_transitions

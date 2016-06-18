@@ -29,7 +29,7 @@ class GameWindow:
         self.processor = processor
         self.screen = screen
         self.clock = pygame.time.Clock()
-        self.windows["welcome"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.screen.get_size()))])
+        self.windows["welcome"] = Step(generator.welcome_path, [("menu", pygame.Rect((0, 0), self.screen.get_size()))])
         self.windows["menu"] = Step('Slide2.JPG', [
             ("single-5", pygame.Rect(self.screen.get_size()[0] * 0.25, 0, self.screen.get_size()[0] * 0.5, self.screen.get_size()[1]), 1)])
         self.windows["single"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.screen.get_size()))])
