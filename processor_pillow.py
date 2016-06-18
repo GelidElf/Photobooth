@@ -117,7 +117,7 @@ class Processor:
 
     def resize_esif_logo_to_image(self, im):
         print "old banner size %sx%s" % self.esif_logo.size
-        ratio = (im.size[1] * 0.125) / self.esif_logo.size[1]
+        ratio = (im.size[1] * 0.1) / self.esif_logo.size[1]
         size = map(lambda x: int(x * ratio), self.esif_logo.size)
         if self.esif_logo.size != size:
             self.esif_logo = self.esif_logo.resize(size, Image.BICUBIC)
