@@ -3,7 +3,6 @@ import subprocess
 
 import pygame
 
-from processor_pillow import Processor
 from step import Step
 from config import current_config
 
@@ -23,14 +22,14 @@ class GameWindow:
     processor = None
     print_count = 0
 
-    def __init__(self, screen, generator):
+    def __init__(self, screen, generator, processor):
         self.test_image = current_config.args.test_image
         self.test_click_area = current_config.args.test_click_area
         self.generator = generator
-        self.processor = Processor(self.generator.banner_path)
+        self.processor = processor
         self.screen = screen
         self.clock = pygame.time.Clock()
-        self.windows["welcome"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.screen.get_size()))])
+        self.windows["welcome"] = Step(generator.welcome_path, [("menu", pygame.Rect((0, 0), self.screen.get_size()))])
         self.windows["menu"] = Step('Slide2.JPG', [
             ("single-5", pygame.Rect(self.screen.get_size()[0] * 0.25, 0, self.screen.get_size()[0] * 0.5, self.screen.get_size()[1]), 1)])
         self.windows["single"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.screen.get_size()))])
@@ -60,8 +59,7 @@ class GameWindow:
         return self.current_step
 
     def process_image(self):
-        self.processor.dual_single_image(self.generator.last_photo_bundle).save(
-            self.generator.last_photo_bundle.processed)
+        self.processor.process_image(self.generator.last_photo_bundle)
         if not self.test_image:
             self.print_image()
 

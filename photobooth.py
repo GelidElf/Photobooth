@@ -5,6 +5,7 @@ import pygame
 import fborx
 from config import current_config
 from photo.photo_name_generator import NameGenerator
+from processor_pillow import Processor
 from window import GameWindow
 
 parser = argparse.ArgumentParser(description='Photobooth.')
@@ -17,6 +18,7 @@ parser.add_argument('-tca', '--test_click_area', action='store_true', default=Fa
 parser.add_argument('-ti', '--test-image', action='store_true', default=False)
 parser.add_argument('--prefix', default='test_session')
 parser.add_argument('--output_path', default=current_config.ROOT_DIR)
+parser.add_argument('--process', choices=('single', 'dual'))
 
 args = parser.parse_args()
 
@@ -26,7 +28,8 @@ RES_AREA = None
 args = parser.parse_args()
 main_screen = fborx.get_screen(SIZE, args.full_screen)
 current_config.update_globals(main_screen.get_size(), args)
-gw = GameWindow(main_screen, NameGenerator(current_config))
+generator = NameGenerator(current_config)
+gw = GameWindow(main_screen, generator, Processor(generator.banner_path, current_config.args.process))
 pygame.time.set_timer(current_config.COUNT_DOWN_EVENT, 1000)
 running = True
 while running:

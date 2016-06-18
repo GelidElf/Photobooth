@@ -1,6 +1,7 @@
 import os
 
 from photo_bundle import PhotoBundle
+from shutil import copyfile
 
 
 class NameGenerator:
@@ -10,6 +11,9 @@ class NameGenerator:
     preview_path = None
     last_photo_bundle = None
     banner_path = None
+    welcome_path = None
+    source_banner_path = None
+    source_welcome_path = None
     raw_queue = None
     status_file = None
     root_dir = None
@@ -22,12 +26,25 @@ class NameGenerator:
         self.root_dir = current_config.ROOT_DIR
         self.ext = current_config.EXT
         output_path = current_config.args.output_path
+        if not output_path:
+                output_path = current_config.ROOT_DIR
         session_path = os.path.join(output_path, self.prefix)
-        if not os.path.exists(session_path):
-            os.makedirs(session_path)
-            print "ERROR: Session path '%s' created, Move the banner to the path" % session_path
-            exit (0)
-        self.banner_path = os.path.join(session_path, 'banner.jpg')
+        if self.prefix:
+            self.source_banner_path = os.path.join(self.root_dir, "images", "banners", self.prefix+".png")
+            self.source_welcome_path = os.path.join(self.root_dir, "images", "welcome", self.prefix+".JPG")
+            if os.path.exists(self.source_banner_path) and os.path.exists(self.source_welcome_path):
+                self.banner_path = os.path.join(session_path, 'banner.png')
+                self.welcome_path = os.path.join(session_path, 'welcome.JPG')
+                if not os.path.exists(session_path):
+                    os.makedirs(session_path)
+                if os.path.exists(self.source_banner_path):
+                    copyfile(self.source_banner_path, self.banner_path)
+                if os.path.exists(self.source_welcome_path):
+                    copyfile(self.source_welcome_path, self.welcome_path)
+        else:
+            print "ERROR: No prefix selected"
+            exit(1)
+
         self.raw_path = os.path.join(session_path, "raw")
         if not os.path.exists(self.raw_path):
             os.makedirs(self.raw_path)
