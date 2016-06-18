@@ -60,8 +60,6 @@ class GameWindow:
 
     def process_image(self):
         self.processor.process_image(self.generator.last_photo_bundle)
-        if not self.test_image:
-            self.print_image()
 
     def take_photo(self):
         photo_name = self.generator.raw_queue.pop()
