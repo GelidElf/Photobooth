@@ -31,13 +31,8 @@ class GameWindow:
         self.clock = pygame.time.Clock()
         self.windows["welcome"] = Step(generator.welcome_path, [("menu", pygame.Rect((0, 0), self.screen.get_size()))])
         self.windows["menu"] = Step('Slide2.JPG', [
-            ("single-5", pygame.Rect(self.screen.get_size()[0] * 0.25, 0, self.screen.get_size()[0] * 0.5, self.screen.get_size()[1]), 1)])
-        self.windows["single"] = Step('Slide1.JPG', [("menu", pygame.Rect((0, 0), self.screen.get_size()))])
-        self.windows["single-5"] = Step('Slide3.JPG', None, ('single-4', 2))
-        self.windows["single-4"] = Step('Slide4.JPG', None, ('single-3', 1))
-        self.windows["single-3"] = Step('Slide5.JPG', None, ('single-2', 1))
-        self.windows["single-2"] = Step('Slide6.JPG', None, ('single-1', 1))
-        self.windows["single-1"] = Step('Slide7.JPG', None, ('smile', 1))
+            ("single", pygame.Rect(self.screen.get_size()[0] * 0.25, 0, self.screen.get_size()[0] * 0.5, self.screen.get_size()[1]), 1)])
+        self.windows["single"] = Step(['Slide3.JPG', 'Slide4.JPG', 'Slide5.JPG', 'Slide6.JPG', 'Slide7.JPG'], None, ('smile', 1))
         self.windows["smile"] = Step('Slide8.JPG', None, command=('process', "PHOTO"))
         self.windows["process"] = Step('Slide9.JPG', None, ('single-result', 1))
         return_to_menu = pygame.Rect((0, self.screen.get_size()[1] - 200), (200, self.screen.get_size()[1]))
@@ -53,7 +48,8 @@ class GameWindow:
     def transition(self, e):
         next_window_name = self.current_step.transition(e, self)
         if next_window_name:
-            self.current_step = self.windows[next_window_name]
+            if next_window_name != "revisit_step":
+                self.current_step = self.windows[next_window_name]
             self.paint(self.current_step.screen(self.screen_surface, self.generator.last_photo_bundle, self.test_click_area))
             if self.generator.last_photo_bundle and self.current_step.transform_result_size:
                 self.process_image()

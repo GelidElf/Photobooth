@@ -7,23 +7,31 @@ from utils import load_image
 
 class Step:
     start_time = 0
-    image = None
-    click_transitions = []
+    images = None
+    sub_step = 0
+    step_count = 0
+    click_transitions = None
     time_transition = None
-    event_transitions = []
+    event_transitions = None
     command = None
     command_running = False
     result_area = False
     transform_result_size = None
 
-    def __init__(self, image_name, click_transitions=None, time_transition=None, event_transitions=None, command=None,
+    def __init__(self, image_names, click_transitions=None, time_transition=None, event_transitions=None, command=None,
                  result=False):
         self.start_time = 0
-        if image_name:
-            if os.path.exists(image_name):
-                self.image, singleRect = load_image(image_name)
-            else:
-                self.image, singleRect = load_image(image_name, style=current_config.args.style)
+        self.sub_step = 0
+        self.images = []
+        if image_names:
+            if not isinstance(image_names, list):
+                image_names = [image_names][:]
+            for image_name in image_names:
+                if os.path.exists(image_name):
+                    image, single_rect = load_image(image_name)
+                else:
+                    image, single_rect = load_image(image_name, style=current_config.args.style)
+                self.images.append(image)
         self.click_transitions = click_transitions
         self.time_transition = time_transition
         self.event_transitions = event_transitions
@@ -33,8 +41,10 @@ class Step:
 
     def screen(self, surface, last_photo_bundle, test_click_area):
         surface.fill(current_config.WHITE)
-        if self.image:
-            surface.blit(pygame.transform.scale(self.image, current_config.SIZE), (0, 0))
+        self.sub_step %= len(self.images)
+        image = self.images[self.sub_step]
+        self.sub_step += 1
+        surface.blit(pygame.transform.scale(image, current_config.SIZE), (0, 0))
         if test_click_area and self.click_transitions:
             s = pygame.Surface(surface.get_size())
             s.set_alpha(128)
@@ -100,7 +110,10 @@ class Step:
                 self.start_time += 1
                 if self.start_time == self.time_transition[1]:
                     self.start_time = 0
-                    next_screen = self.time_transition[0]
+                    if self.sub_step != len(self.images):
+                        next_screen = "revisit_step"
+                    else:
+                        next_screen = self.time_transition[0]
         return next_screen
 
 
