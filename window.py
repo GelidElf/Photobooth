@@ -31,15 +31,19 @@ class GameWindow:
         self.clock = pygame.time.Clock()
         self.windows["welcome"] = Step(generator.welcome_path, [("menu", pygame.Rect((0, 0), self.screen.get_size()))])
         self.windows["menu"] = Step('Slide2.JPG', [
-            ("single", pygame.Rect(self.screen.get_size()[0] * 0.25, 0, self.screen.get_size()[0] * 0.5, self.screen.get_size()[1]), 1)])
-        self.windows["single"] = Step(['Slide3.JPG', 'Slide4.JPG', 'Slide5.JPG', 'Slide6.JPG', 'Slide7.JPG'], None, ('smile', 1))
+            ("single", pygame.Rect(self.screen.get_size()[0] * 0.25, 0, self.screen.get_size()[0] * 0.5,
+                                   self.screen.get_size()[1]), 1)])
+        self.windows["single"] = Step(['Slide3.JPG', 'Slide4.JPG', 'Slide5.JPG', 'Slide6.JPG', 'Slide7.JPG'], None,
+                                      ('smile', 1))
+        self.windows["single"] = Step(['Slide3.JPG', 'Slide4.JPG', 'Slide5.JPG', 'Slide6.JPG', 'Slide7.JPG'], None,
+                                      ('smile', 1))
         self.windows["smile"] = Step('Slide8.JPG', None, command=('process', "PHOTO"))
         self.windows["process"] = Step('Slide9.JPG', None, ('single-result', 1))
         return_to_menu = pygame.Rect((0, self.screen.get_size()[1] - 200), (200, self.screen.get_size()[1]))
         print_button = pygame.Rect((0, 0), (200, 200))
-        self.windows["single-result"] = Step('Slide10.JPG', [('menu', return_to_menu), ('print', print_button)], ('welcome', 20), result=True)
-        self.windows["print"] = Step('Slide11.JPG', None, command=('print2', 'PRINT'))
-        self.windows["print2"] = Step('Slide11.JPG', None, ('menu', 2))
+        self.windows["single-result"] = Step('Slide36.JPG', [('menu', return_to_menu), ('print', print_button)], ('welcome', 20), result=True)
+        self.windows["print"] = Step('Slide36.JPG', None, command=('print2', 'PRINT'))
+        self.windows["print2"] = Step('Slide36.JPG', None, ('menu', 2))
 
         self.current_step = self.windows['welcome']
         self.screen_surface = pygame.Surface(self.screen.get_size())

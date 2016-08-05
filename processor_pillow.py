@@ -8,6 +8,7 @@ class ProcessType:
     Single = 'single'
     Dual = 'dual'
     Two = 'two'
+    Four = 'four'
 
 
 class Processor:
@@ -32,6 +33,35 @@ class Processor:
             return self.process_dual_image(photo_bundle).save(photo_bundle.processed)
         elif self.mode == ProcessType.Two:
             return self.process_two_images(photo_bundle).save(photo_bundle.processed)
+        elif self.mode == ProcessType.Four:
+            return self.process_four_images(photo_bundle).save(photo_bundle.processed)
+
+    def process_four_images(self, photo_bundle):
+        images = map(lambda image: Image.open(image), photo_bundle.raw)
+        new_size = map(lambda x: int(x * 0.5), images[0].size)
+        map(lambda x: x.thumbnail(new_size, Image.ANTIALIAS), images)
+        im = images[0]
+        self.resize_additions(im)
+        print("image", im.format, im.size, im.mode)
+        new_height = int((im.size[1]*2 + self.banner.size[1]) * 1.10)
+        new_width = int((new_height / 1.45) * 2)
+        top_border = int(new_height / 20)
+        print("new", new_width, new_height, top_border)
+
+        new_im = Image.new('RGBA', (new_width, new_height), ImageColor.getcolor('WHITE', 'RGBA'))
+        banner_x_start = int(new_width / 2 - self.banner.size[0] / 2)
+        new_im.paste(self.banner, (banner_x_start, top_border + im.size[1]))
+        left_x_start = int(new_width / 4 - im.size[0] / 2)
+        right_x_start = int(new_width / 2 + left_x_start)
+        new_im.paste(images[0], (left_x_start, top_border))
+        new_im.paste(images[1], (right_x_start, top_border))
+        new_im.paste(im, (left_x_start, int(top_border * 1.5) + im.size[1] + self.banner.size[1]))
+        new_im.paste(im, (right_x_start, int(top_border * 1.5) + im.size[1] + self.banner.size[1]))
+        esif_logo_x_start = int(new_width - left_x_start - self.esif_logo.size[0])
+        esif_logo_y_start = int(top_border + im.size[1])
+        new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_y_start), mask=self.esif_logo)
+        new_im.paste(self.esif_logo, (esif_logo_x_start, int(top_border * 1.5) + (im.size[1]*2) + self.banner.size[1]), mask=self.esif_logo)
+        return new_im
 
     def process_dual_image(self, photo_bundle):
         im = Image.open(photo_bundle.raw[0])
