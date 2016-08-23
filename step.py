@@ -74,9 +74,20 @@ class Step:
         return self.result_area
 
     def start_cords(self, images, index):
-        return (self.result_area.mid_point[0] - self.transform_result_size[0] / 2, self.result_area.mid_point[1] - (
-            self.transform_result_size[1] * (len(images)) / 2) + self.transform_result_size[
+        if len(images) < 3:
+            return (self.result_area.mid_point[0] - self.transform_result_size[0] / 2, self.result_area.mid_point[1] - (
+                self.transform_result_size[1] * (len(images)) / 2) + self.transform_result_size[
                     1] * index)
+        else:
+            if (index % 2) == 0:
+                x = self.result_area.mid_point[0] - self.transform_result_size[0]
+            else:
+                x = self.result_area.mid_point[0]
+            if index < 2:
+                y = self.result_area.mid_point[1] - self.transform_result_size[1]
+            else:
+                y = self.result_area.mid_point[1]
+        return x, y
 
     def execute(self, game_window):
         next_screen = None
@@ -135,8 +146,14 @@ class ResultArea:
     def size_for_screen(self, images):
         image_width = images[0][1].width
         image_height = images[0][1].height
-        x_ratio = float(self.size[0]) / image_width
-        y_ratio = float(self.size[1]) / (image_height * len(images))
+        if len(images) < 3:
+            columns = 1
+            rows = 2
+        else:
+            columns = 2
+            rows = 2
+        x_ratio = float(self.size[0]) / (image_width * columns)
+        y_ratio = float(self.size[1]) / (image_height * rows)
         print("x/y ratio: %s/%s" % (x_ratio, y_ratio))
         if x_ratio < y_ratio:
             return int(image_width * x_ratio), int(image_height * x_ratio)
