@@ -146,7 +146,10 @@ class ResultArea:
     def size_for_screen(self, images):
         image_width = images[0][1].width
         image_height = images[0][1].height
-        if len(images) < 3:
+        if len(images) == 1:
+            columns = 1
+            rows = 1
+        elif len(images) < 3:
             columns = 1
             rows = 2
         else:
