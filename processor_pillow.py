@@ -55,12 +55,11 @@ class Processor:
         right_x_start = int(new_width / 2 + left_x_start)
         new_im.paste(images[0], (left_x_start, top_border))
         new_im.paste(images[1], (right_x_start, top_border))
-        new_im.paste(im, (left_x_start, int(top_border * 1.5) + im.size[1] + self.banner.size[1]))
-        new_im.paste(im, (right_x_start, int(top_border * 1.5) + im.size[1] + self.banner.size[1]))
+        new_im.paste(images[2], (left_x_start, top_border + im.size[1] + self.banner.size[1]))
+        new_im.paste(images[3], (right_x_start, top_border + im.size[1] + self.banner.size[1]))
         esif_logo_x_start = int(new_width - left_x_start - self.esif_logo.size[0])
-        esif_logo_y_start = int(top_border + im.size[1])
+        esif_logo_y_start = int((new_height - self.esif_logo.size[1])/2)
         new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_y_start), mask=self.esif_logo)
-        new_im.paste(self.esif_logo, (esif_logo_x_start, int(top_border * 1.5) + (im.size[1]*2) + self.banner.size[1]), mask=self.esif_logo)
         return new_im
 
     def process_dual_image(self, photo_bundle):
