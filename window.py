@@ -14,11 +14,16 @@ printers = ('Canon_CP910_ipp', 'Canon_CP910_ipp_b')
 def start_step():
     if current_config.args.process == 'four':
         return 'multiple1'
+    elif current_config.args.process == 'four_album':
+        return 'multiple1'
     else:
         return 'single'
 
+
 def number_of_photos():
     if current_config.args.process == 'four':
+        return 4
+    elif current_config.args.process == 'four_album':
         return 4
     else:
         return 1
