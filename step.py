@@ -44,6 +44,7 @@ class Step:
         self.sub_step %= len(self.images)
         image = self.images[self.sub_step]
         self.sub_step += 1
+        print ("sub step %d" % self.sub_step)
         surface.blit(pygame.transform.scale(image, current_config.SIZE), (0, 0))
         if test_click_area and self.click_transitions:
             s = pygame.Surface(surface.get_size())
@@ -95,8 +96,10 @@ class Step:
             self.command_running = True
             action_type = self.command[1]
             if "PHOTO" == action_type:
+                print ("Taking Photo")
                 game_window.take_photo()
             elif 'PRINT' == action_type:
+                print ("Printing Photo")
                 game_window.print_image()
             self.command_running = False
             next_screen = self.command[0]
@@ -106,8 +109,9 @@ class Step:
     def transition(self, e, game_window):
         next_screen = None
         if self.command:
-            self.start_time = 0
             next_screen = self.execute(game_window)
+            self.start_time = 0
+            print "coomanding " % next_screen
         elif self.click_transitions and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             for tran in self.click_transitions:
                 if tran[1].collidepoint(e.pos):
@@ -116,6 +120,7 @@ class Step:
                         game_window.last_result_image = None
                         game_window.generator.create(tran[2])
                     next_screen = tran[0]
+                    print "clicking " % next_screen
         elif self.time_transition:
             if e.type == current_config.COUNT_DOWN_EVENT:
                 self.start_time += 1
@@ -125,6 +130,7 @@ class Step:
                         next_screen = "revisit_step"
                     else:
                         next_screen = self.time_transition[0]
+                print "clocking " % next_screen
         return next_screen
 
 

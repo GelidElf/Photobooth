@@ -82,6 +82,7 @@ class GameWindow:
         if next_window_name:
             if next_window_name != "revisit_step":
                 self.current_step = self.windows[next_window_name]
+                print ("in step %d" % next_window_name)
             self.paint(self.current_step.screen(self.screen_surface, self.generator.last_photo_bundle, self.test_click_area))
             if self.generator.last_photo_bundle and self.current_step.transform_result_size:
                 self.process_image()
