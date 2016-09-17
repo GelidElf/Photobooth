@@ -34,15 +34,15 @@ pygame.time.set_timer(current_config.COUNT_DOWN_EVENT, 1000)
 running = True
 while running:
 
-    for event in pygame.event.get():
+    for event in pygame.event.wait():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-        print event.key
+        print "event %s " % event
         gw.transition(event)
-    gw.clock.tick(60)
+    # gw.clock.tick(60)
 
 # make sure to call pygame.quit() if using the framebuffer to get back to your terminal
 pygame.quit()
