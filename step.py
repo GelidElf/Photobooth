@@ -131,7 +131,8 @@ class Step:
                     else:
                         next_screen = self.time_transition[0]
                 print "clocking %s" % next_screen
-        pygame.event.clear(current_config.COUNT_DOWN_EVENT)
+        if next_screen is not None:
+            pygame.event.clear(current_config.COUNT_DOWN_EVENT)
         return next_screen
 
 
