@@ -34,7 +34,7 @@ pygame.time.set_timer(current_config.COUNT_DOWN_EVENT, 1000)
 running = True
 while running:
 
-    for event in pygame.event.wait():
+    for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
