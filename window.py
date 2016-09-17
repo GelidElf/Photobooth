@@ -66,7 +66,7 @@ class GameWindow:
         self.wait_steps('multiple4', 28, 'process')
         return_to_menu = pygame.Rect((0, self.screen.get_size()[1] - 200), (200, self.screen.get_size()[1]))
         print_button = pygame.Rect((0, 0), (200, 200))
-        self.windows["single-result"] = Step('Slide35.JPG', [('menu', return_to_menu), ('print', print_button)], ('welcome', 20), result=True)
+        self.windows["single-result"] = Step('Slide35.JPG', [('menu', return_to_menu), ('print', print_button)], ('print', 20), result=True)
         self.windows["print"] = Step('Slide36.JPG', None, command=('print2', 'PRINT'))
         self.windows["print2"] = Step('Slide36.JPG', None, ('menu', 2))
 

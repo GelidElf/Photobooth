@@ -42,7 +42,7 @@ while running:
                 running = False
         print "event %s " % event
         gw.transition(event)
-    # gw.clock.tick(60)
+    pygame.event.pump()
 
 # make sure to call pygame.quit() if using the framebuffer to get back to your terminal
 pygame.quit()

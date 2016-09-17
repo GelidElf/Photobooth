@@ -73,7 +73,7 @@ class Processor:
         self.resize_additions(im)
         print("image", im.format, im.size, im.mode)
         new_height = int((im.size[1] + self.banner.size[1]) * 1.20) * 2
-        new_width = int((new_height / 1.45) * 2)
+        new_width = int(new_height * 1.5)
         top_border = int(new_height / 20)
         print("new", new_width, new_height, top_border)
 
