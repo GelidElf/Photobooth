@@ -111,7 +111,7 @@ class Step:
         if self.command:
             next_screen = self.execute(game_window)
             self.start_time = 0
-            print "coomanding " % next_screen
+            print "coomanding %s" % next_screen
         elif self.click_transitions and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             for tran in self.click_transitions:
                 if tran[1].collidepoint(e.pos):
@@ -120,7 +120,7 @@ class Step:
                         game_window.last_result_image = None
                         game_window.generator.create(tran[2])
                     next_screen = tran[0]
-                    print "clicking " % next_screen
+                    print "clicking %s" % next_screen
         elif self.time_transition:
             if e.type == current_config.COUNT_DOWN_EVENT:
                 self.start_time += 1
@@ -130,7 +130,7 @@ class Step:
                         next_screen = "revisit_step"
                     else:
                         next_screen = self.time_transition[0]
-                print "clocking " % next_screen
+                print "clocking %s" % next_screen
         return next_screen
 
 
