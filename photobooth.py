@@ -19,6 +19,7 @@ parser.add_argument('-ti', '--test-image', action='store_true', default=False)
 parser.add_argument('--prefix', default='test_session')
 parser.add_argument('--output_path', default=current_config.ROOT_DIR)
 parser.add_argument('--process', choices=('single', 'dual', 'four', 'four_album'))
+parser.add_argument('--chroma', action='store_true', default=False)
 
 args = parser.parse_args()
 

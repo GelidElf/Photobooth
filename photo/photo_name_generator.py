@@ -19,9 +19,11 @@ class NameGenerator:
     root_dir = None
     ext = None
     test_image = False
+    chroma = False
 
     def __init__(self, current_config):
         self.prefix = current_config.args.prefix
+        self.chroma = current_config.args.chroma
         self.test_image = current_config.args.test_image
         self.root_dir = current_config.ROOT_DIR
         self.ext = current_config.EXT
@@ -68,7 +70,7 @@ class NameGenerator:
                 photo_name = "%s-%s%s" % (self.prefix, self.photo_count, self.ext)
                 self.raw_queue.append(os.path.abspath(os.path.join(self.raw_path, photo_name)))
             processed = os.path.abspath(os.path.join(self.preview_path, photo_name))
-        self.last_photo_bundle = PhotoBundle(list(self.raw_queue), processed)
+        self.last_photo_bundle = PhotoBundle(list(self.raw_queue), processed, self.chroma)
         self.update_photo_counter()
         print("created %s" % self.last_photo_bundle)
 
