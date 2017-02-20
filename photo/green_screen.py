@@ -4,70 +4,62 @@ import cv2
 
 
 class Chroma:
+    """
+    Trying the HSV method
+    """
     background_image = None
-    reference_image = None
-    thresh = None
-    use_edges = True
-    bg_edges = None
 
-    def __init__(self, reference_image, background_image, thresh):
+    def __init__(self, background_image):
         self.background_image = background_image
-        self.reference_image = reference_image
-        self.thresh = thresh
 
-        # this is for automatically setting corners of frame to background
-        gray_shape = (reference_image.shape[0], reference_image.shape[1])
-        bg_edges = np.zeros(gray_shape, np.uint8)
-        # storage format is y,x, color
-        edge_size_x = bg_edges.shape[1] / 8
-        edge_size_y = bg_edges.shape[0] / 4
-        bg_edges[0:edge_size_y, 0:edge_size_x] = 255
-        bg_edges[0:edge_size_y, -edge_size_x:] = 255
-        bg_edges[-edge_size_y:, 0:edge_size_x] = 255
-        bg_edges[-edge_size_y:, -edge_size_x:] = 255
-        self.bg_edges = bg_edges
 
     def _crop_background_image(self):
         pass
 
     def merge(self, img):
-        use_denoise = False
-        denoise_h = 0
-        fgmask = self.find_fgmask(img, self.reference_image, thresh=self.thresh, use_denoise=use_denoise, h=denoise_h)
-        bgmask = cv2.bitwise_not(fgmask)
+        height, width, _ = self.background_image.shape
+        cv2.resize(img, (height, width))
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        lower_green = np.array([20, 60, 0])
+        upper_green = np.array([80, 255, 255])
+        mask = cv2.bitwise_not(cv2.inRange(hsv, lower_green, upper_green))
 
-        if self.use_edges:
-            bgmask = cv2.bitwise_or(bgmask, self.bg_edges)
-            fgmask = cv2.bitwise_not(bgmask)
+        # kernel = np.ones((5, 5),'int')
+        # dilated = cv2.dilate(mask, kernel)
 
-        fgimg = cv2.bitwise_and(img, img, mask=fgmask)
-        bgimg = cv2.bitwise_and(self.background_image, self.background_image, mask=bgmask)
+        #res = cv2.bitwise_and(img, img, mask=mask)
+        idx = (mask != 0)
+        res = self.background_image.copy()
+        res[idx] = img[idx]
+        return res
+"""
+        matte = self.hueDistance(color=cv2.Color.GREEN, minvalue = 40).binarize()
+        result = (img-matte)+(self.background_image-matte.invert())
+        result.save('result.png')
 
-        sum = cv2.add(fgimg, bgimg)
-        result = sum
+    def hueDistance(self, img, color=cv2.BLACK, minsaturation=20, minvalue=20, maxvalue=255):
 
-    '''
-    find_fgmask: Finds the 'foregound mask', i.e. where the foreground objects are
-    Author: Scott Hawley
-    It doesn't use any especially clever algorithm (e.g., no BGMOG), just the fruits
-    of significant trial-and-error on my part, for what seems to work best
+        if isinstance(color, (float, int, long, complex)):
+            color_hue = color
+        else:
+            color_hue = cv2.Color.hsv(color)[0]
 
-    Warning: de-noising is slow, and best suited for post-processing only
-    '''
+        vsh_matrix = self.toHSV().getNumpy().reshape(-1, 3)  # again, gets transposed to vsh
+        hue_channel = np.cast['int'](vsh_matrix[:, 2])
 
-    def find_fgmask(self, img, ref_img=self.background_image, thresh=13.0, use_denoise=False, h=10.0):
-        diff1 = cv2.subtract(img, ref_img)
-        diff2 = cv2.subtract(ref_img, img)
-        diff = diff1 + diff2
+        if color_hue < 90:
+            hue_loop = 180
+        else:
+            hue_loop = -180
+        # set whether we need to move back or forward on the hue circle
 
-        sws = int(np.ceil(21 * h / 10) // 2 * 2 + 1)
-        diff[abs(diff) < thresh] = 0
-        gray = cv2.cvtColor(diff.astype(np.uint8), cv2.COLOR_BGR2GRAY)
-        gray[np.abs(gray) < 10] = 0
-        if use_denoise:
-            cv2.fastNlMeansDenoising(gray, gray, h=h, templateWindowSize=5, searchWindowSize=sws)
-        fgmask = gray.astype(np.uint8)
-        fgmask[fgmask > 0] = 255
-        return fgmask
+        distances = np.minimum(np.abs(hue_channel - color_hue), np.abs(hue_channel - (color_hue + hue_loop)))
+        # take the minimum distance for each pixel
 
+        distances = np.where(
+            np.logical_and(vsh_matrix[:, 0] > minvalue, vsh_matrix[:, 1] > minsaturation),
+            distances * (255.0 / 90.0),  # normalize 0 - 90 -> 0 - 255
+            255.0)  # use the maxvalue if it false outside of our value/saturation tolerances
 
+        return Image(distances.reshape(self.width, self.height))
+"""
