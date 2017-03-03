@@ -122,7 +122,8 @@ class Processor:
         new_im = Image.new('RGBA', (new_width, new_height), ImageColor.getcolor('WHITE', 'RGBA'))
         draw = ImageDraw.Draw(new_im)
         line_y = top_border + im.size[1] + self.banner.size[1]
-        draw.line((0, line_y, new_width, line_y), fill=128, width=0)
+        line_color = ImageColor.getcolor('BLACK', 'RGBA')
+        draw.rectangle((0, line_y-1, new_width, line_y+1), outline=line_color, fill=line_color)
         banner_x_start = int(new_width / 2 - self.banner.size[0] / 2)
         new_im.paste(self.banner, (banner_x_start, top_border + im.size[1]))
         new_im.paste(self.banner, (banner_x_start, int(top_border * 1.5) + im.size[1] * 2 + self.banner.size[1]))
