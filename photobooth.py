@@ -16,6 +16,7 @@ parser.add_argument('-s', '--style', default='blanco_negro')
 parser.add_argument('-b', '--border', default=0)
 parser.add_argument('-tca', '--test_click_area', action='store_true', default=False)
 parser.add_argument('-ti', '--test-image', action='store_true', default=False)
+parser.add_argument('--logging', action='store_true', default=False)
 parser.add_argument('--prefix', default='test_session')
 parser.add_argument('--output_path', default=current_config.ROOT_DIR)
 parser.add_argument('--process', choices=('single', 'dual', 'four', 'four_album'))
@@ -25,7 +26,6 @@ args = parser.parse_args()
 SIZE = (args.x, args.y)
 RES_AREA = None
 
-args = parser.parse_args()
 main_screen = fborx.get_screen(SIZE, args.full_screen)
 current_config.update_globals(main_screen.get_size(), args)
 generator = NameGenerator(current_config)
@@ -40,7 +40,8 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-        print "event %s " % event
+        if current_config.args.logging:
+            print "event %s " % event
         gw.transition(event)
     pygame.event.pump()
 
