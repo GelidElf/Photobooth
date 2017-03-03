@@ -12,9 +12,16 @@ class Chroma:
     def __init__(self, background_image):
         self.background_image = background_image
 
-
-    def _crop_background_image(self):
-        pass
+    def _crop_background_image(self, image):
+        height, width, _ = self.background_image.shape
+        ratio = width/height
+        t_height, t_width, _ = image.shape
+        t_ratio = width/height
+        if ratio == t_ratio and  height != t_height:
+            self.background_image = cv2.resize(self.background_image,(t_height, t_width))
+        if ratio < t_ratio:
+            if height < t_height:
+                pass
 
     def merge(self, img):
         height, width, _ = self.background_image.shape

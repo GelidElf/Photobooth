@@ -28,5 +28,6 @@ class TestChroma(TestCase):
 
     # mouse callback function
     def get_values(self, event,x,y,flags,param):
-        print y,x,self.image[y][x]
+        if event == cv2.EVENT_LBUTTONDOWN:
+            print y,x,self.image[y][x]
 
