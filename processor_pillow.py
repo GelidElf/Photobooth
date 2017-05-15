@@ -8,6 +8,7 @@ class ProcessType:
     Single = 'single'
     Dual = 'dual'
     Two = 'two'
+    Double = 'double'
     Four = 'four'
     FourAlbum = 'four_album'
 
@@ -31,9 +32,11 @@ class Processor:
         if self.mode == ProcessType.Single:
             return self.process_single_image(photo_bundle).save(photo_bundle.processed)
         elif self.mode == ProcessType.Dual:
-            return self.process_dual_image(photo_bundle).save(photo_bundle.processed)
+            return self.process_one_in_two(photo_bundle).save(photo_bundle.processed)
         elif self.mode == ProcessType.Two:
-            return self.process_two_images(photo_bundle).save(photo_bundle.processed)
+            return self.process_two_in_one(photo_bundle).save(photo_bundle.processed)
+        elif self.mode == ProcessType.Double:
+            return self.process_two_in_two(photo_bundle).save(photo_bundle.processed)
         elif self.mode == ProcessType.Four:
             return self.process_four_images(photo_bundle).save(photo_bundle.processed)
         elif self.mode == ProcessType.FourAlbum:
@@ -109,7 +112,7 @@ class Processor:
 
         return new_im
 
-    def process_dual_image(self, photo_bundle):
+    def process_one_in_two(self, photo_bundle):
         im = Image.open(photo_bundle.raw[0])
         im.thumbnail(map(lambda x: int(x * 0.5), im.size), Image.ANTIALIAS)
         self.resize_additions(im)
@@ -136,6 +139,36 @@ class Processor:
         new_im.paste(self.esif_logo, (esif_logo_x_start, int(top_border * 1.5) + (im.size[1]*2) + self.banner.size[1]), mask=self.esif_logo)
         return new_im
 
+    def process_two_in_two(self, photo_bundle):
+        im1 = Image.open(photo_bundle.raw[0])
+        resize = map(lambda x: int(x * 0.5), im1.size)
+        im1.thumbnail(resize, Image.ANTIALIAS)
+        self.resize_additions(im1)
+        print("image", im1.format, im1.size, im1.mode)
+        im2 = Image.open(photo_bundle.raw[1])
+        im2.thumbnail(resize, Image.ANTIALIAS)
+        new_height = int((im1.size[1] + self.banner.size[1]) * 1.15) * 2
+        new_width = int(new_height / 1.45)
+        top_border = int(new_height / 20)
+        print("new", new_width, new_height, top_border)
+
+        new_im = Image.new('RGBA', (new_width, new_height), ImageColor.getcolor('WHITE', 'RGBA'))
+        draw = ImageDraw.Draw(new_im)
+        line_y = top_border + im1.size[1] + self.banner.size[1]
+        line_color = ImageColor.getcolor('BLACK', 'RGBA')
+        draw.rectangle((0, line_y-1, new_width, line_y+1), outline=line_color, fill=line_color)
+        banner_x_start = int(new_width / 2 - self.banner.size[0] / 2)
+        new_im.paste(self.banner, (banner_x_start, top_border + im1.size[1]))
+        new_im.paste(self.banner, (banner_x_start, int(top_border * 1.5) + im1.size[1] * 2 + self.banner.size[1]))
+        im_x_start = int(new_width / 2 - im1.size[0] / 2)
+        new_im.paste(im1, (im_x_start, top_border))
+        new_im.paste(im2, (im_x_start, int(top_border * 1.5) + im1.size[1] + self.banner.size[1]))
+        esif_logo_x_start = int(new_width - im_x_start - self.esif_logo.size[0])
+        esif_logo_y_start = int(top_border + im1.size[1])
+        new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_y_start), mask=self.esif_logo)
+        new_im.paste(self.esif_logo, (esif_logo_x_start, int(top_border * 1.5) + (im1.size[1]*2) + self.banner.size[1]), mask=self.esif_logo)
+        return new_im
+
     def process_single_image(self, photo_bundle):
         im = Image.open(photo_bundle.raw[0])
         im.thumbnail(map(lambda x: int(x * 0.5), im.size), Image.ANTIALIAS)
@@ -156,7 +189,7 @@ class Processor:
         new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_y_start), mask=self.esif_logo)
         return new_im
 
-    def process_two_images(self, photo_bundle):
+    def process_two_in_one(self, photo_bundle):
         im1 = Image.open(photo_bundle.raw[0])
         resize = (im1.size[0] * 0.6, im1.size[1] * 0.6)
         im1.thumbnail(resize, Image.ANTIALIAS)
