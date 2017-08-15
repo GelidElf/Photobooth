@@ -5,7 +5,7 @@ from PIL import ImageDraw
 
 
 gphoto_command = 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'
-digicamcontrol_command = 'C:\Program Files\digiCamControl\CameraControlCmd.exe /capture  /filename ${filename} '
+digicamcontrol_command = 'C:\Program Files (x86)\digiCamControl\\CameraControlCmd.exe /capture  /filename ${filename} '
 
 class ProcessType:
     Single = 'single'
@@ -40,7 +40,7 @@ class Processor:
         if self.mode == ProcessType.Single:
             return self.process_single_image(photo_bundle).save(photo_bundle.processed)
         elif self.mode == ProcessType.Dual:
-            return self.process_one_in_two(photo_bundle).save(photo_bundle.processed)
+            return self.process_one_in_two(photo_bundle).convert("RGB").save(photo_bundle.processed)
         elif self.mode == ProcessType.Two:
             return self.process_two_in_one(photo_bundle).save(photo_bundle.processed)
         elif self.mode == ProcessType.Double:
