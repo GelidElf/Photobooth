@@ -1,12 +1,15 @@
 import os
+
 from PIL import Image
 from PIL import ImageColor
 from PIL import ImageDraw
+from PIL import ImageOps
 
 
 class ProcessType:
     Single = 'single'
     Dual = 'dual'
+    DualSepia = 'dual_sepia'
     Two = 'two'
     Double = 'double'
     Four = 'four'
@@ -26,21 +29,26 @@ class Processor:
         print("banner", self.banner.format, self.banner.size, self.banner.mode)
 
     def process_image(self, photo_bundle):
+        processed_image = None
         parent_dir = os.path.dirname(photo_bundle.processed)
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
         if self.mode == ProcessType.Single:
-            return self.process_single_image(photo_bundle).save(photo_bundle.processed)
+            processed_image = self.process_single_image(photo_bundle)
         elif self.mode == ProcessType.Dual:
-            return self.process_one_in_two(photo_bundle).save(photo_bundle.processed)
+            processed_image = self.process_one_in_two(photo_bundle)
+        elif self.mode == ProcessType.DualSepia:
+            processed_image = self.process_sepia(self.process_one_in_two(photo_bundle))
         elif self.mode == ProcessType.Two:
-            return self.process_two_in_one(photo_bundle).save(photo_bundle.processed)
+            processed_image = self.process_two_in_one(photo_bundle)
         elif self.mode == ProcessType.Double:
-            return self.process_two_in_two(photo_bundle).save(photo_bundle.processed)
+            processed_image = self.process_two_in_two(photo_bundle)
         elif self.mode == ProcessType.Four:
-            return self.process_four_images(photo_bundle).save(photo_bundle.processed)
+            processed_image = self.process_four_images(photo_bundle)
         elif self.mode == ProcessType.FourAlbum:
-            return self.process_four_album_images(photo_bundle).save(photo_bundle.processed)
+            processed_image = self.process_four_album_images(photo_bundle)
+
+        return processed_image.save(photo_bundle.processed)
 
     def process_four_images(self, photo_bundle):
         images = map(lambda image: Image.open(image), photo_bundle.raw)
@@ -122,10 +130,10 @@ class Processor:
         top_border = int(new_height / 20)
         print("new", new_width, new_height, top_border)
 
-        new_im = Image.new('RGBA', (new_width, new_height), ImageColor.getcolor('WHITE', 'RGBA'))
+        new_im = Image.new('RGB', (new_width, new_height), ImageColor.getcolor('WHITE', 'RGB'))
         draw = ImageDraw.Draw(new_im)
         line_y = top_border + im.size[1] + self.banner.size[1]
-        line_color = ImageColor.getcolor('BLACK', 'RGBA')
+        line_color = ImageColor.getcolor('BLACK', 'RGB')
         draw.rectangle((0, line_y-1, new_width, line_y+1), outline=line_color, fill=line_color)
         banner_x_start = int(new_width / 2 - self.banner.size[0] / 2)
         new_im.paste(self.banner, (banner_x_start, top_border + im.size[1]))
@@ -210,6 +218,33 @@ class Processor:
         new_im.paste(im2, (int(new_width / 2 - im2.size[0] / 2), new_height - im2.size[1] - self.banner.size[1]))
         new_im.paste(self.banner, (int(new_width / 2 - self.banner.size[0] / 2), new_height - self.banner.size[1]))
         return new_im
+
+    def process_sepia(self, im):
+
+        # make sepia ramp (tweak color as necessary)
+        sepia = self.make_linear_ramp((255, 240, 192))
+
+        # convert to grayscale
+        if im.mode != "L":
+            im = im.convert("L")
+
+        # optional: apply contrast enhancement here, e.g.
+        im = ImageOps.autocontrast(im)
+
+        # apply sepia palette
+        im.putpalette(sepia)
+
+        # convert back to RGB so we can save it as JPEG
+        # (alternatively, save it in PNG or similar)
+        return im.convert("RGB")
+
+    def make_linear_ramp(self, white):
+        # putpalette expects [r,g,b,r,g,b,...]
+        ramp = []
+        r, g, b = white
+        for i in range(255):
+            ramp.extend((r * i / 255, g * i / 255, b * i / 255))
+        return ramp
 
     def resize_additions(self, im):
         if self.resized_from != im.size:
