@@ -3,6 +3,7 @@ import os
 
 from config import current_config
 from utils import load_image
+import printing
 
 
 class Step:
@@ -100,7 +101,7 @@ class Step:
                 game_window.take_photo()
             elif 'PRINT' == action_type:
                 print ("Printing Photo")
-                game_window.print_image()
+                printing.print_image(self.generator.last_photo_bundle.processed)
             self.command_running = False
             next_screen = self.command[0]
         self.start_time = 0

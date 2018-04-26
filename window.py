@@ -1,5 +1,6 @@
 import string
 import subprocess
+import printing
 
 import pygame
 
@@ -7,8 +8,6 @@ from step import Step
 from config import current_config
 
 gphoto_command = 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'
-print_command = 'lpr -P ${printer} ${filename}'
-printers = ('Canon_CP910_ipp', 'Canon_CP910_ipp_b')
 
 
 def start_step():
@@ -46,7 +45,6 @@ class GameWindow:
     generator = None
     last_result_image = None
     processor = None
-    print_count = 0
 
     def __init__(self, screen, generator, processor):
         self.test_image = current_config.args.test_image
@@ -95,15 +93,6 @@ class GameWindow:
     def take_photo(self):
         photo_name = self.generator.raw_queue.pop()
         command = string.Template(gphoto_command).safe_substitute(filename=photo_name)
-        print("executing: '%s'" % command)
-        if not self.test_image:
-            subprocess.call(command.split(' '))
-
-    def print_image(self):
-        photo_name = self.generator.last_photo_bundle.processed
-        self.print_count += 1
-        printer_name = printers[self.print_count % 2]
-        command = string.Template(print_command).safe_substitute(filename=photo_name, printer=printer_name)
         print("executing: '%s'" % command)
         if not self.test_image:
             subprocess.call(command.split(' '))
