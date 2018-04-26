@@ -41,6 +41,9 @@ class NameGenerator:
                     copyfile(self.source_banner_path, self.banner_path)
                 if os.path.exists(self.source_welcome_path):
                     copyfile(self.source_welcome_path, self.welcome_path)
+            else:
+                print "ERROR: Source banner or welcome path does not exist"
+                exit(1)
         else:
             print "ERROR: No prefix selected"
             exit(1)
@@ -60,8 +63,10 @@ class NameGenerator:
         if self.test_image:
             for _ in range(number_photos):
                 self.photo_count += 1
-                self.raw_queue.append(os.path.abspath(os.path.join(self.root_dir, 'images/maxresdefault.jpg')))
-            processed = os.path.abspath(os.path.join(self.root_dir, 'images/maxresdefault-processed%s.jpg' % self.photo_count))
+                source_image = os.path.abspath(os.path.join(self.root_dir, 'images/maxresdefault.jpg'))
+                self.raw_queue.append(source_image)
+                copyfile(source_image, os.path.abspath(os.path.join(self.raw_path, 'maxresdefault-%s.jpg' % self.photo_count)))
+            processed = os.path.abspath(os.path.join(self.preview_path, 'maxresdefault-processed%s.jpg' % self.photo_count))
         else:
             for _ in range(number_photos):
                 self.photo_count += 1
