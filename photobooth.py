@@ -22,6 +22,7 @@ parser.add_argument('--logging', action='store_true', default=False)
 parser.add_argument('--prefix', default='test_session')
 parser.add_argument('--output_path', default=current_config.ROOT_DIR)
 parser.add_argument('--process', choices=('single', 'dual', 'dual_sepia', 'four', 'four_album'))
+parser.add_argument('-ws', '--web_server', action='store_true', default=False)
 
 args = parser.parse_args()
 
@@ -31,10 +32,11 @@ RES_AREA = None
 main_screen = fborx.get_screen(SIZE, args.full_screen)
 current_config.update_globals(main_screen.get_size(), args)
 generator = NameGenerator(current_config)
-app.config.generator = generator
-t = threading.Thread(target=app.run)
-t.daemon = True
-t.start()
+if current_config.args.web_server:
+    app.config.generator = generator
+    t = threading.Thread(target=app.run)
+    t.daemon = True
+    t.start()
 gw = GameWindow(main_screen, generator, Processor(generator.banner_path, current_config.args.process))
 pygame.time.set_timer(current_config.COUNT_DOWN_EVENT, 1000)
 running = True
