@@ -35,6 +35,7 @@ current_config.update_globals(main_screen.get_size(), args)
 generator = NameGenerator(current_config)
 if current_config.args.web_server:
     app.config.generator = generator
+    app.config.profile = current_config.args.prefix
     t = threading.Thread(target=app.run)
     t.daemon = True
     t.start()

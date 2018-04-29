@@ -5,15 +5,16 @@ div.gallery {
     margin: 5px;
     border: 1px solid #ccc;
     float: left;
-    width: 180px;
-}
-
-div.gallery:hover {
-    border: 1px solid #777;
+    width: 100%;
 }
 
 div.gallery img {
     width: 100%;
+    height: auto;
+}
+
+div.desc img {
+    width: 50;
     height: auto;
 }
 
@@ -25,10 +26,9 @@ div.desc {
 
 </head>
 <body>
-
+<div class="desc"> <a href="/print/{{ photo }}" ><img src="/static/icons8-print-50.png">{{ photo }}</a></div>
 <div class="gallery">
-    <img src= "/image/{{ photo }}" alt="{{ photo }}" width="300" height="200">
-  <div class="desc"> <a href="/print/{{ photo }}" >{{ photo }}</a></div>
+    <img src= "/image/{{ photo }}" alt="{{ photo }}" >
 </div>
 
 

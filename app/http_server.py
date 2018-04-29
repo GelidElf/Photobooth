@@ -22,8 +22,9 @@ app = Flask(__name__)
 @app.route("/index.html")
 def index():
     image_path = current_app.config.generator.raw_path
+    profile = current_app.config.profile
     photos = listdir(image_path)
-    return render_template('index.html', photos=photos)
+    return render_template('index.html', photos=photos, profile=profile)
 
 
 @app.route("/image/<image_name>")
@@ -40,7 +41,7 @@ def view(image_name):
 def print_image(image_name):
     image_path = current_app.config.generator.preview_path + sep + image_name
     print_helper.print_image(image_path)
-    return "OK"
+    return "Sending %s to be printed" % image_name
 
 
 @app.after_request
