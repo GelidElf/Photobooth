@@ -2,8 +2,18 @@ from flask import Flask
 from flask import current_app
 from flask import render_template
 from flask import send_file
+import os
 from os import listdir, sep
-import printing
+try:
+    import printing_win as print_helper
+except ImportError:
+    import printing as print_helper
+'''
+if os.name == 'nt': # sys.platform == 'win32':
+    import printing_win as print_helper
+else:
+    import printing as print_helper
+'''
 
 app = Flask(__name__)
 
@@ -29,7 +39,7 @@ def view(image_name):
 @app.route("/print/<image_name>")
 def print_image(image_name):
     image_path = current_app.config.generator.preview_path + sep + image_name
-    printing.print_image(image_path)
+    print_helper.print_image(image_path)
     return "OK"
 
 

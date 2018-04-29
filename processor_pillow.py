@@ -5,6 +5,9 @@ from PIL import ImageColor
 from PIL import ImageDraw
 from PIL import ImageOps
 
+gphoto_command = 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'
+digicamcontrol_command = 'C:\Program Files (x86)\digiCamControl\\CameraControlCmd.exe /capture  /filename ${filename} '
+
 
 class ProcessType:
     Single = 'single'
@@ -21,11 +24,16 @@ class Processor:
     esif_logo = None
     resized_from = None
     mode = None
+    photo_capture_command = None
 
-    def __init__(self, banner_path, mode=ProcessType.Dual):
+    def __init__(self, banner_path, mode=ProcessType.Dual, win_env=False):
         self.banner = Image.open(banner_path)
         self.esif_logo = Image.open(os.path.join(os.path.dirname(__file__), "images/logo_esif.png"))
         self.mode = mode
+        if not win_env:
+            self.photo_capture_command=gphoto_command
+        else:
+            self.photo_capture_command=digicamcontrol_command
         print("banner", self.banner.format, self.banner.size, self.banner.mode)
 
     def process_image(self, photo_bundle):

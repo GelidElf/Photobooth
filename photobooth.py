@@ -23,6 +23,7 @@ parser.add_argument('--prefix', default='test_session')
 parser.add_argument('--output_path', default=current_config.ROOT_DIR)
 parser.add_argument('--process', choices=('single', 'dual', 'dual_sepia', 'four', 'four_album'))
 parser.add_argument('-ws', '--web_server', action='store_true', default=False)
+parser.add_argument('--win_env', action='store_true', default=False)
 
 args = parser.parse_args()
 
@@ -37,7 +38,8 @@ if current_config.args.web_server:
     t = threading.Thread(target=app.run)
     t.daemon = True
     t.start()
-gw = GameWindow(main_screen, generator, Processor(generator.banner_path, current_config.args.process))
+gw = GameWindow(main_screen, generator, Processor(generator.banner_path, current_config.args.process,
+                                                  current_config.args.win_env))
 pygame.time.set_timer(current_config.COUNT_DOWN_EVENT, 1000)
 running = True
 while running:

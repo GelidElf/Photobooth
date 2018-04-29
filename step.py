@@ -3,8 +3,16 @@ import os
 
 from config import current_config
 from utils import load_image
-import printing
-
+try:
+    import printing_win as print_helper
+except ImportError:
+    import printing as print_helper
+'''
+if os.name == 'nt': # sys.platform == 'win32':
+    import printing_win as print_helper
+else:
+    import printing as print_helper
+'''
 
 class Step:
     start_time = 0
@@ -101,7 +109,7 @@ class Step:
                 game_window.take_photo()
             elif 'PRINT' == action_type:
                 print ("Printing Photo")
-                printing.print_image(self.generator.last_photo_bundle.processed)
+                print_helper.print_image(self.generator.last_photo_bundle.processed)
             self.command_running = False
             next_screen = self.command[0]
         self.start_time = 0

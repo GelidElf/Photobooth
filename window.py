@@ -1,14 +1,10 @@
 import string
 import subprocess
-import printing
 
 import pygame
 
 from step import Step
 from config import current_config
-
-gphoto_command = 'gphoto2 --capture-image-and-download --filename ${filename} --force-overwrite'
-
 
 def start_step():
     if current_config.args.process == 'four':
@@ -92,7 +88,10 @@ class GameWindow:
 
     def take_photo(self):
         photo_name = self.generator.raw_queue.pop()
-        command = string.Template(gphoto_command).safe_substitute(filename=photo_name)
+        if current_config.args.win_env:
+            photo_name = str.replace(photo_name, r'\\', r'\\\\')
+            print("win_filename: '%s'" % photo_name)
+        command = string.Template(self.processor.photo_capture_command).safe_substitute(filename=photo_name)
         print("executing: '%s'" % command)
         if not self.test_image:
             subprocess.call(command.split(' '))
