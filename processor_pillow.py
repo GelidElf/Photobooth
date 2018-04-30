@@ -36,32 +36,49 @@ class Processor:
             self.photo_capture_command=digicamcontrol_command
         print("banner", self.banner.format, self.banner.size, self.banner.mode)
 
-    def process_image(self, photo_bundle):
+    def process_image(self, photo_bundle, save_for_web):
         processed_image = None
         parent_dir = os.path.dirname(photo_bundle.processed)
+        images = self.resize_for_processing(photo_bundle)
+
+        if save_for_web:
+            self.create_web_copies(images, photo_bundle)
+
         if not os.path.exists(parent_dir):
             os.makedirs(parent_dir)
         if self.mode == ProcessType.Single:
-            processed_image = self.process_single_image(photo_bundle)
+            processed_image = self.process_single_image(images)
         elif self.mode == ProcessType.Dual:
-            processed_image = self.process_one_in_two(photo_bundle)
+            processed_image = self.process_one_in_two(images)
         elif self.mode == ProcessType.DualSepia:
-            processed_image = self.process_sepia(self.process_one_in_two(photo_bundle))
+            processed_image = self.process_sepia(self.process_one_in_two(images))
         elif self.mode == ProcessType.Two:
-            processed_image = self.process_two_in_one(photo_bundle)
+            processed_image = self.process_two_in_one(images)
         elif self.mode == ProcessType.Double:
-            processed_image = self.process_two_in_two(photo_bundle)
+            processed_image = self.process_two_in_two(images)
         elif self.mode == ProcessType.Four:
-            processed_image = self.process_four_images(photo_bundle)
+            processed_image = self.process_four_images(images)
         elif self.mode == ProcessType.FourAlbum:
-            processed_image = self.process_four_album_images(photo_bundle)
+            processed_image = self.process_four_album_images(images)
 
         return processed_image.save(photo_bundle.processed)
 
-    def process_four_images(self, photo_bundle):
+    def create_web_copies(self, images, photo_bundle):
+        web_images = map(lambda i: i.copy(), images)
+        self.shrink_to_half(web_images)
+        for index, image in enumerate(web_images):
+            image.save(photo_bundle.web[index])
+
+    def resize_for_processing(self, photo_bundle):
         images = map(lambda image: Image.open(image), photo_bundle.raw)
+        self.shrink_to_half(images)
+        return images
+
+    def shrink_to_half(self, images):
         new_size = map(lambda x: int(x * 0.5), images[0].size)
         map(lambda x: x.thumbnail(new_size, Image.ANTIALIAS), images)
+
+    def process_four_images(self, images):
         im = images[0]
         self.resize_additions(im)
         print("image", im.format, im.size, im.mode)
@@ -84,10 +101,7 @@ class Processor:
         new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_y_start), mask=self.esif_logo)
         return new_im
 
-    def process_four_album_images(self, photo_bundle):
-        images = map(lambda image: Image.open(image), photo_bundle.raw)
-        new_size = map(lambda x: int(x * 0.5), images[0].size)
-        map(lambda x: x.thumbnail(new_size, Image.ANTIALIAS), images)
+    def process_four_album_images(self, images):
         im = images[0]
         self.resize_additions(im)
         print("image", im.format, im.size, im.mode)
@@ -128,9 +142,8 @@ class Processor:
 
         return new_im
 
-    def process_one_in_two(self, photo_bundle):
-        im = Image.open(photo_bundle.raw[0])
-        im.thumbnail(map(lambda x: int(x * 0.5), im.size), Image.ANTIALIAS)
+    def process_one_in_two(self, images):
+        im = images[0]
         self.resize_additions(im)
         print("image", im.format, im.size, im.mode)
         new_height = int((im.size[1] + self.banner.size[1]) * 1.15) * 2
@@ -155,14 +168,11 @@ class Processor:
         new_im.paste(self.esif_logo, (esif_logo_x_start, int(top_border * 1.5) + (im.size[1]*2) + self.banner.size[1]), mask=self.esif_logo)
         return new_im
 
-    def process_two_in_two(self, photo_bundle):
-        im1 = Image.open(photo_bundle.raw[0])
-        resize = map(lambda x: int(x * 0.5), im1.size)
-        im1.thumbnail(resize, Image.ANTIALIAS)
+    def process_two_in_two(self, images):
+        im1 = images[0]
         self.resize_additions(im1)
         print("image", im1.format, im1.size, im1.mode)
-        im2 = Image.open(photo_bundle.raw[1])
-        im2.thumbnail(resize, Image.ANTIALIAS)
+        im2 = images[1]
         new_height = int((im1.size[1] + self.banner.size[1]) * 1.15) * 2
         new_width = int(new_height / 1.45)
         top_border = int(new_height / 20)
@@ -185,9 +195,8 @@ class Processor:
         new_im.paste(self.esif_logo, (esif_logo_x_start, int(top_border * 1.5) + (im1.size[1]*2) + self.banner.size[1]), mask=self.esif_logo)
         return new_im
 
-    def process_single_image(self, photo_bundle):
-        im = Image.open(photo_bundle.raw[0])
-        im.thumbnail(map(lambda x: int(x * 0.5), im.size), Image.ANTIALIAS)
+    def process_single_image(self, images):
+        im = images[0]
         self.resize_additions(im)
         print("image", im.format, im.size, im.mode)
         new_height = int((im.size[1] + self.banner.size[1]) * 1.05)
@@ -205,17 +214,14 @@ class Processor:
         new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_y_start), mask=self.esif_logo)
         return new_im
 
-    def process_two_in_one(self, photo_bundle):
-        im1 = Image.open(photo_bundle.raw[0])
-        resize = (im1.size[0] * 0.6, im1.size[1] * 0.6)
-        im1.thumbnail(resize, Image.ANTIALIAS)
+    def process_two_in_one(self, images):
+        im1 = images[0]
 
         new_width = int(im1.size[0] * 10 / 9)
         new_height = int(new_width * 1.5)
 
         print("image", im1.format, im1.size, im1.mode)
-        im2 = Image.open(photo_bundle.raw[1])
-        im2.thumbnail(resize, Image.ANTIALIAS)
+        im2 = images[1]
         print("image", im2.format, im2.size, im2.mode)
 
         top_border = int(new_height / 20)

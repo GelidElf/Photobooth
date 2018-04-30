@@ -8,6 +8,7 @@ class NameGenerator:
     prefix = None
     photo_count = None
     raw_path = None
+    web_path = None
     preview_path = None
     last_photo_bundle = None
     banner_path = None
@@ -15,6 +16,7 @@ class NameGenerator:
     source_banner_path = None
     source_welcome_path = None
     raw_queue = None
+    web_queue = None
     status_file = None
     root_dir = None
     ext = None
@@ -54,26 +56,33 @@ class NameGenerator:
         self.preview_path = os.path.join(session_path, "preview")
         if not os.path.exists(self.preview_path):
             os.makedirs(self.preview_path)
+        self.web_path = os.path.join(session_path, "web")
+        if not os.path.exists(self.web_path):
+            os.makedirs(self.web_path)
         self.raw_queue = []
+        self.web_queue = []
         self.status_file_name = os.path.join(session_path, "status.txt")
         self.read_photo_counter()
 
     def create(self, number_photos=1):
         self.raw_queue = []
+        self.web_queue = []
         if self.test_image:
             for _ in range(number_photos):
                 self.photo_count += 1
                 source_image = os.path.abspath(os.path.join(self.root_dir, 'images/maxresdefault.jpg'))
                 self.raw_queue.append(source_image)
-                copyfile(source_image, os.path.abspath(os.path.join(self.raw_path, 'maxresdefault-%s.jpg' % self.photo_count)))
-            processed = os.path.abspath(os.path.join(self.preview_path, 'maxresdefault-processed%s.jpg' % self.photo_count))
+                self.web_queue.append(os.path.abspath(os.path.join(self.web_path, 'maxresdefault-%03d.jpg' % self.photo_count)))
+                copyfile(source_image, os.path.abspath(os.path.join(self.raw_path, 'maxresdefault-%03d.jpg' % self.photo_count)))
+            processed = os.path.abspath(os.path.join(self.preview_path, 'maxresdefault-processed%03d.jpg' % self.photo_count))
         else:
             for _ in range(number_photos):
                 self.photo_count += 1
-                photo_name = "%s-%s%s" % (self.prefix, self.photo_count, self.ext)
+                photo_name = "%s-%03d%s" % (self.prefix, self.photo_count, self.ext)
                 self.raw_queue.append(os.path.abspath(os.path.join(self.raw_path, photo_name)))
+                self.web_queue.append(os.path.abspath(os.path.join(self.web_path, photo_name)))
             processed = os.path.abspath(os.path.join(self.preview_path, photo_name))
-        self.last_photo_bundle = PhotoBundle(list(self.raw_queue), processed)
+        self.last_photo_bundle = PhotoBundle(list(self.raw_queue), processed, list(self.web_queue))
         self.update_photo_counter()
         print("created %s" % self.last_photo_bundle)
 

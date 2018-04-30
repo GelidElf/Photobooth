@@ -55,7 +55,7 @@ for f in zipped:
     print raw
     processed =  os.path.abspath(join(args.output_path,f[0]))
     pb = PhotoBundle(raw,processed)
-    processor.process_image(pb)
+    processor.process_image(pb, True)
     print "completed %s" % f[0]
 print "DONE!"
 

@@ -7,12 +7,7 @@ try:
     import printing_win as print_helper
 except ImportError:
     import printing as print_helper
-'''
-if os.name == 'nt': # sys.platform == 'win32':
-    import printing_win as print_helper
-else:
-    import printing as print_helper
-'''
+
 
 class Step:
     start_time = 0

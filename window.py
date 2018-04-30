@@ -84,7 +84,7 @@ class GameWindow:
         return self.current_step
 
     def process_image(self):
-        self.processor.process_image(self.generator.last_photo_bundle)
+        self.processor.process_image(self.generator.last_photo_bundle, current_config.args.web_server)
 
     def take_photo(self):
         photo_name = self.generator.raw_queue.pop()
