@@ -36,7 +36,7 @@ generator = NameGenerator(current_config)
 if current_config.args.web_server:
     app.config.generator = generator
     app.config.profile = current_config.args.prefix
-    t = threading.Thread(target=app.run)
+    t = threading.Thread(target=app.run, args=('0.0.0.0',))
     t.daemon = True
     t.start()
 gw = GameWindow(main_screen, generator, Processor(generator.banner_path, current_config.args.process,
