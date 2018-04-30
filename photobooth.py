@@ -24,6 +24,7 @@ parser.add_argument('--output_path', default=current_config.ROOT_DIR)
 parser.add_argument('--process', choices=('single', 'dual', 'dual_sepia', 'four', 'four_album'))
 parser.add_argument('-ws', '--web_server', action='store_true', default=False)
 parser.add_argument('--win_env', action='store_true', default=False)
+parser.add_argument('-tp','--thread_processing', action='store_true', default=False)
 
 args = parser.parse_args()
 

@@ -1,5 +1,6 @@
 import string
 import subprocess
+import threading
 
 import pygame
 
@@ -84,7 +85,12 @@ class GameWindow:
         return self.current_step
 
     def process_image(self):
-        self.processor.process_image(self.generator.last_photo_bundle, current_config.args.web_server)
+        if current_config.args.thread_processing:
+            t = threading.Thread(target=self.processor.process_image, args=(self.generator.last_photo_bundle, current_config.args.web_server,))
+            t.daemon = True
+            t.start()
+        else:
+            self.processor.process_image(self.generator.last_photo_bundle, current_config.args.web_server)
 
     def take_photo(self):
         photo_name = self.generator.raw_queue.pop()
