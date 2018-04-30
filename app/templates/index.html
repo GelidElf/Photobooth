@@ -59,23 +59,24 @@ div.desc {
     text-align: center;
 }
 
+
 </style>
 <body>
 
 <!-- Header -->
 <div class="header">
-  <h1>Boda {{profile}}</h1>
+    <h1>Boda {{profile}}</h1>
 </div>
 
 <!-- Photo Grid -->
 <div class="row">
 
-{% for photo in photos %}
+    {% for photo in photos %}
     <div class="column">
-		<a href="/view/{{ photo[0] }}" ><img src="/image/{{ photo[0] }}" style="width:100%"></a>
-        <div class="desc"> {{photo[0]}}  [{{photo[1]}}]</div>
-	</div>
-{% endfor %}
+        <a href="/view/{{ photo[0] }}"><img src="/image/{{ photo[0] }}" style="width:100%"></a>
+        <div class="desc"> {{photo[0]}} [{{photo[1]}}]</div>
+    </div>
+    {% endfor %}
 </div>
 
 </body>

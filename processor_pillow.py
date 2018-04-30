@@ -31,9 +31,9 @@ class Processor:
         self.esif_logo = Image.open(os.path.join(os.path.dirname(__file__), "images/logo_esif.png"))
         self.mode = mode
         if not win_env:
-            self.photo_capture_command=gphoto_command
+            self.photo_capture_command = gphoto_command
         else:
-            self.photo_capture_command=digicamcontrol_command
+            self.photo_capture_command = digicamcontrol_command
         print("banner", self.banner.format, self.banner.size, self.banner.mode)
 
     def process_image(self, photo_bundle, save_for_web):
@@ -82,7 +82,7 @@ class Processor:
         im = images[0]
         self.resize_additions(im)
         print("image", im.format, im.size, im.mode)
-        new_height = int((im.size[1]*2 + self.banner.size[1]) * 1.10)
+        new_height = int((im.size[1] * 2 + self.banner.size[1]) * 1.10)
         new_width = int((new_height / 1.45) * 2)
         top_border = int(new_height / 20)
         print("new", new_width, new_height, top_border)
@@ -97,7 +97,7 @@ class Processor:
         new_im.paste(images[2], (left_x_start, top_border + im.size[1] + self.banner.size[1]))
         new_im.paste(images[3], (right_x_start, top_border + im.size[1] + self.banner.size[1]))
         esif_logo_x_start = int(new_width - left_x_start - self.esif_logo.size[0])
-        esif_logo_y_start = int((new_height - self.esif_logo.size[1])/2)
+        esif_logo_y_start = int((new_height - self.esif_logo.size[1]) / 2)
         new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_y_start), mask=self.esif_logo)
         return new_im
 
@@ -155,7 +155,7 @@ class Processor:
         draw = ImageDraw.Draw(new_im)
         line_y = top_border + im.size[1] + self.banner.size[1]
         line_color = ImageColor.getcolor('BLACK', 'RGB')
-        draw.rectangle((0, line_y-1, new_width, line_y+1), outline=line_color, fill=line_color)
+        draw.rectangle((0, line_y - 1, new_width, line_y + 1), outline=line_color, fill=line_color)
         banner_x_start = int(new_width / 2 - self.banner.size[0] / 2)
         new_im.paste(self.banner, (banner_x_start, top_border + im.size[1]))
         new_im.paste(self.banner, (banner_x_start, int(top_border * 1.5) + im.size[1] * 2 + self.banner.size[1]))
@@ -165,7 +165,8 @@ class Processor:
         esif_logo_x_start = int(new_width - im_x_start - self.esif_logo.size[0])
         esif_logo_y_start = int(top_border + im.size[1])
         new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_y_start), mask=self.esif_logo)
-        new_im.paste(self.esif_logo, (esif_logo_x_start, int(top_border * 1.5) + (im.size[1]*2) + self.banner.size[1]), mask=self.esif_logo)
+        esif_logo_2_y_start = int(top_border * 1.5) + (im.size[1] * 2) + self.banner.size[1]
+        new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_2_y_start), mask=self.esif_logo)
         return new_im
 
     def process_two_in_two(self, images):
@@ -182,7 +183,7 @@ class Processor:
         draw = ImageDraw.Draw(new_im)
         line_y = top_border + im1.size[1] + self.banner.size[1]
         line_color = ImageColor.getcolor('BLACK', 'RGBA')
-        draw.rectangle((0, line_y-1, new_width, line_y+1), outline=line_color, fill=line_color)
+        draw.rectangle((0, line_y - 1, new_width, line_y + 1), outline=line_color, fill=line_color)
         banner_x_start = int(new_width / 2 - self.banner.size[0] / 2)
         new_im.paste(self.banner, (banner_x_start, top_border + im1.size[1]))
         new_im.paste(self.banner, (banner_x_start, int(top_border * 1.5) + im1.size[1] * 2 + self.banner.size[1]))
@@ -192,7 +193,8 @@ class Processor:
         esif_logo_x_start = int(new_width - im_x_start - self.esif_logo.size[0])
         esif_logo_y_start = int(top_border + im1.size[1])
         new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_y_start), mask=self.esif_logo)
-        new_im.paste(self.esif_logo, (esif_logo_x_start, int(top_border * 1.5) + (im1.size[1]*2) + self.banner.size[1]), mask=self.esif_logo)
+        esif_logo_2_y_start = int(top_border * 1.5) + (im1.size[1] * 2) + self.banner.size[1]
+        new_im.paste(self.esif_logo, (esif_logo_x_start, esif_logo_2_y_start), mask=self.esif_logo)
         return new_im
 
     def process_single_image(self, images):

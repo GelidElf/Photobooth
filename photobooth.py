@@ -1,14 +1,14 @@
 import argparse
-
-import pygame
 import threading
 
+import pygame
+
 import fborx
+from app.http_server import app
 from config import current_config
 from photo.photo_name_generator import NameGenerator
 from processor_pillow import Processor
 from window import GameWindow
-from app.http_server import app
 
 parser = argparse.ArgumentParser(description='Photobooth.')
 parser.add_argument('-f', '--full_screen', action='store_true', default=False)
@@ -24,7 +24,7 @@ parser.add_argument('--output_path', default=current_config.ROOT_DIR)
 parser.add_argument('--process', choices=('single', 'dual', 'dual_sepia', 'four', 'four_album'))
 parser.add_argument('-ws', '--web_server', action='store_true', default=False)
 parser.add_argument('--win_env', action='store_true', default=False)
-parser.add_argument('-tp','--thread_processing', action='store_true', default=False)
+parser.add_argument('-tp', '--thread_processing', action='store_true', default=False)
 
 args = parser.parse_args()
 

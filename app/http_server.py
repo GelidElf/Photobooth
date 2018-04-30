@@ -1,10 +1,10 @@
+import os
+from datetime import datetime
+
 from flask import Flask
 from flask import current_app
 from flask import render_template
 from flask import send_file
-import os
-import time
-from datetime import datetime
 
 try:
     import printing_win as print_helper

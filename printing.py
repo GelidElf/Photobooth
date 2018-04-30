@@ -1,5 +1,6 @@
 import string
 import subprocess
+
 from config import current_config
 
 print_command = 'lpr -P ${printer} ${filename}'

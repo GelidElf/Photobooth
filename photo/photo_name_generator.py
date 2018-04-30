@@ -1,7 +1,7 @@
 import os
+from shutil import copyfile
 
 from photo_bundle import PhotoBundle
-from shutil import copyfile
 
 
 class NameGenerator:
@@ -29,11 +29,11 @@ class NameGenerator:
         self.ext = current_config.EXT
         output_path = current_config.args.output_path
         if not output_path:
-                output_path = current_config.ROOT_DIR
+            output_path = current_config.ROOT_DIR
         session_path = os.path.join(output_path, self.prefix)
         if self.prefix:
-            self.source_banner_path = os.path.join(self.root_dir, "images", "banners", self.prefix+".png")
-            self.source_welcome_path = os.path.join(self.root_dir, "images", "welcome", self.prefix+".JPG")
+            self.source_banner_path = os.path.join(self.root_dir, "images", "banners", self.prefix + ".png")
+            self.source_welcome_path = os.path.join(self.root_dir, "images", "welcome", self.prefix + ".JPG")
             if os.path.exists(self.source_banner_path) and os.path.exists(self.source_welcome_path):
                 self.banner_path = os.path.join(session_path, 'banner.png')
                 self.welcome_path = os.path.join(session_path, 'welcome.JPG')
@@ -72,9 +72,11 @@ class NameGenerator:
                 self.photo_count += 1
                 source_image = os.path.abspath(os.path.join(self.root_dir, 'images/maxresdefault.jpg'))
                 self.raw_queue.append(source_image)
-                self.web_queue.append(os.path.abspath(os.path.join(self.web_path, 'maxresdefault-%03d.jpg' % self.photo_count)))
-                copyfile(source_image, os.path.abspath(os.path.join(self.raw_path, 'maxresdefault-%03d.jpg' % self.photo_count)))
-            processed = os.path.abspath(os.path.join(self.preview_path, 'maxresdefault-processed%03d.jpg' % self.photo_count))
+                new_image_name = 'maxresdefault-%03d.jpg' % self.photo_count
+                self.web_queue.append(os.path.abspath(os.path.join(self.web_path, new_image_name)))
+                copyfile(source_image, os.path.abspath(os.path.join(self.raw_path, new_image_name)))
+            processed_name = 'maxresdefault-processed%03d.jpg' % self.photo_count
+            processed = os.path.abspath(os.path.join(self.preview_path, processed_name))
         else:
             for _ in range(number_photos):
                 self.photo_count += 1

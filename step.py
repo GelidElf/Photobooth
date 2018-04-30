@@ -1,8 +1,10 @@
-import pygame
 import os
+
+import pygame
 
 from config import current_config
 from utils import load_image
+
 try:
     import printing_win as print_helper
 except ImportError:
@@ -81,8 +83,8 @@ class Step:
     def start_cords(self, images, index):
         if len(images) < 3:
             return (self.result_area.mid_point[0] - self.transform_result_size[0] / 2, self.result_area.mid_point[1] - (
-                self.transform_result_size[1] * (len(images)) / 2) + self.transform_result_size[
-                    1] * index)
+                    self.transform_result_size[1] * (len(images)) / 2) + self.transform_result_size[
+                        1] * index)
         else:
             if (index % 2) == 0:
                 x = self.result_area.mid_point[0] - self.transform_result_size[0]

@@ -4,8 +4,9 @@ import threading
 
 import pygame
 
-from step import Step
 from config import current_config
+from step import Step
+
 
 def start_step():
     if current_config.args.process == 'four':
@@ -51,7 +52,8 @@ class GameWindow:
         self.screen = screen
         self.clock = pygame.time.Clock()
         self.windows["welcome"] = Step(generator.welcome_path, [("menu", pygame.Rect((0, 0), self.screen.get_size()))])
-        start_button = pygame.Rect(self.screen.get_size()[0] * 0.25, 0, self.screen.get_size()[0] * 0.5, self.screen.get_size()[1])
+        start_button = pygame.Rect(self.screen.get_size()[0] * 0.25, 0, self.screen.get_size()[0] * 0.5,
+                                   self.screen.get_size()[1])
         self.windows["menu"] = Step('Slide2.JPG', [(start_step(), start_button, number_of_photos())])
         self.wait_steps('single', 3, 'process')
         self.windows["process"] = Step('Slide9.JPG', None, ('single-result', 1))
@@ -61,17 +63,19 @@ class GameWindow:
         self.wait_steps('multiple4', 28, 'process')
         return_to_menu = pygame.Rect((0, self.screen.get_size()[1] - 200), (200, self.screen.get_size()[1]))
         print_button = pygame.Rect((0, 0), (200, 200))
-        self.windows["single-result"] = Step('Slide35.JPG', [('menu', return_to_menu), ('print', print_button)], ('welcome', 20), result=True)
+        self.windows["single-result"] = Step('Slide35.JPG', [('menu', return_to_menu), ('print', print_button)],
+                                             ('welcome', 20), result=True)
         self.windows["print"] = Step('Slide36.JPG', None, command=('print2', 'PRINT'))
         self.windows["print2"] = Step('Slide36.JPG', None, ('menu', 2))
 
         self.current_step = self.windows['welcome']
         self.screen_surface = pygame.Surface(self.screen.get_size())
-        self.paint(self.current_step.screen(self.screen_surface, self.generator.last_photo_bundle, self.test_click_area))
+        self.paint(
+            self.current_step.screen(self.screen_surface, self.generator.last_photo_bundle, self.test_click_area))
 
     def wait_steps(self, name, first_slide_number, next_step):
-        self.windows[name] = Step(slide_names(first_slide_number, 5), None, (name+'smile', 1))
-        self.windows[name+"smile"] = Step(slide_name(first_slide_number+5), None, command=(next_step, "PHOTO"))
+        self.windows[name] = Step(slide_names(first_slide_number, 5), None, (name + 'smile', 1))
+        self.windows[name + "smile"] = Step(slide_name(first_slide_number + 5), None, command=(next_step, "PHOTO"))
 
     def transition(self, e):
         next_window_name = self.current_step.transition(e, self)
@@ -79,14 +83,16 @@ class GameWindow:
             if next_window_name != "revisit_step":
                 self.current_step = self.windows[next_window_name]
                 print ("in step %s" % next_window_name)
-            self.paint(self.current_step.screen(self.screen_surface, self.generator.last_photo_bundle, self.test_click_area))
+            self.paint(
+                self.current_step.screen(self.screen_surface, self.generator.last_photo_bundle, self.test_click_area))
             if self.generator.last_photo_bundle and self.current_step.transform_result_size:
                 self.process_image()
         return self.current_step
 
     def process_image(self):
         if current_config.args.thread_processing:
-            t = threading.Thread(target=self.processor.process_image, args=(self.generator.last_photo_bundle, current_config.args.web_server,))
+            t = threading.Thread(target=self.processor.process_image,
+                                 args=(self.generator.last_photo_bundle, current_config.args.web_server,))
             t.daemon = True
             t.start()
         else:
