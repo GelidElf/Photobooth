@@ -1,25 +1,29 @@
 import string
 import subprocess
 import win32print, win32ui
+from config import current_config
 from PIL import Image, ImageWin
 
 print_command = 'rundll32 C:\Windows\System32\shimgvw.dll ImageView_PrintTo "${filename}" "${printer}"'
 printers = ['sinfonia']
 
-def print_image(self):
-    photo_name = self.generator.last_photo_bundle.processed
+print_count = 0
+
+
+def print_image(photo_name):
+    global print_count
     if current_config.args.win_env:
         photo_name = photo_name.replace(r'\\', r'\\\\')
         print("win_filename: '%s'" % photo_name)
-    self.print_count += 1
+    print_count += 1
     if len(printers) > 1:
-        printer_name = printers[self.print_count % 2]
+        printer_name = printers[print_count % 2]
     else:
         printer_name = printers[0]
     #command = string.Template(print_command).safe_substitute(filename=photo_name, printer=printer_name)
     #command = command.replace(r'\\', r'\\\\')
     #print("executing: '%s'" % command)
-    if not self.test_image:
+    if not current_config.args.test_image:
         #win32api.ShellExecute (0, "print", photo_name, '/d: "%s"' % printer_name, ".", 0)
         #subprocess.call(command.split(' '))
         dc = win32ui.CreateDC()

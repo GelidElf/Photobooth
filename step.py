@@ -106,7 +106,7 @@ class Step:
                 game_window.take_photo()
             elif 'PRINT' == action_type:
                 print ("Printing Photo")
-                print_helper.print_image(self.generator.last_photo_bundle.processed)
+                print_helper.print_image(game_window.generator.last_photo_bundle.processed)
             self.command_running = False
             next_screen = self.command[0]
         self.start_time = 0
